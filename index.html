@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AquaDrone — Water Quality Monitor</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  :root {
+    --bg: #f4f7fa;
+    --surface: #ffffff;
+    --border: #e2e8f0;
+    --text: #1a2332;
+    --muted: #64748b;
+    --accent: #0ea5e9;
+    --accent2: #06b6d4;
+    --green: #10b981;
+    --amber: #f59e0b;
+    --red: #ef4444;
+    --radius: 12px;
+    --shadow: 0 1px 4px rgba(0,0,0,.06), 0 4px 16px rgba(0,0,0,.06);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+
+  /* NAV */
+  nav { background:var(--surface); border-bottom:1px solid var(--border); padding:0 28px; display:flex; align-items:center; justify-content:space-between; height:60px; position:sticky; top:0; z-index:999; }
+  .nav-logo { font-size:1.1rem; font-weight:600; display:flex; align-items:center; gap:8px; }
+  .nav-logo span { width:28px; height:28px; background:linear-gradient(135deg,var(--accent),var(--accent2)); border-radius:8px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:.8rem; }
+  .nav-tabs { display:flex; gap:4px; }
+  .tab { padding:6px 16px; border-radius:8px; font-size:.85rem; font-weight:500; cursor:pointer; border:none; background:transparent; color:var(--muted); transition:.2s; }
+  .tab.active { background:var(--accent); color:#fff; }
+  .tab:hover:not(.active) { background:var(--bg); }
+  .nav-status { display:flex; align-items:center; gap:8px; font-size:.8rem; color:var(--muted); }
+  .pulse { width:8px; height:8px; border-radius:50%; background:var(--green); animation:pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.3)} }
+
+  /* LAYOUT */
+  .page { display:none; padding:24px 28px; }
+  .page.active { display:block; }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  .grid4 { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:20px; }
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:20px; box-shadow:var(--shadow); }
+  h2 { font-size:1rem; font-weight:600; margin-bottom:16px; color:var(--text); }
+  h3 { font-size:.8rem; font-weight:500; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; margin-bottom:4px; }
+
+  /* PARAM CARDS */
+  .param-card { position:relative; overflow:hidden; }
+  .param-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; border-radius:var(--radius) var(--radius) 0 0; }
+  .param-card.ph::before { background:var(--accent); }
+  .param-card.do::before { background:var(--green); }
+  .param-card.turb::before { background:var(--amber); }
+  .param-card.temp::before { background:var(--red); }
+  .param-val { font-family:'DM Mono',monospace; font-size:2rem; font-weight:500; line-height:1; }
+  .param-unit { font-size:.75rem; color:var(--muted); margin-left:4px; }
+  .param-badge { display:inline-flex; align-items:center; gap:4px; font-size:.72rem; padding:2px 8px; border-radius:20px; margin-top:8px; font-weight:500; }
+  .good { background:#dcfce7; color:#16a34a; }
+  .warn { background:#fef9c3; color:#ca8a04; }
+  .bad { background:#fee2e2; color:#dc2626; }
+  .trend { font-size:.72rem; color:var(--muted); margin-top:4px; }
+
+  /* LIVE GRAPH */
+  .chart-wrap { position:relative; height:220px; }
+
+  /* DRONE CONTROL */
+  #map { height:340px; border-radius:10px; border:1px solid var(--border); }
+  .input-row { display:flex; gap:10px; margin-bottom:12px; }
+  .inp { flex:1; padding:9px 12px; border:1px solid var(--border); border-radius:8px; font-family:inherit; font-size:.85rem; background:var(--bg); outline:none; transition:.2s; }
+  .inp:focus { border-color:var(--accent); background:#fff; }
+  label { font-size:.8rem; color:var(--muted); display:block; margin-bottom:4px; }
+  .btn { padding:9px 18px; border-radius:8px; border:none; font-family:inherit; font-size:.85rem; font-weight:500; cursor:pointer; transition:.2s; }
+  .btn-primary { background:var(--accent); color:#fff; }
+  .btn-primary:hover { background:#0284c7; }
+  .btn-danger { background:#fee2e2; color:var(--red); }
+  .btn-danger:hover { background:#fecaca; }
+  .btn-green { background:#dcfce7; color:#16a34a; }
+  .btn-green:hover { background:#bbf7d0; }
+  .btn-outline { background:transparent; border:1px solid var(--border); color:var(--text); }
+  .btn-outline:hover { background:var(--bg); }
+  select.inp { cursor:pointer; }
+
+  /* DRONE STATUS PANEL */
+  .drone-status { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:16px; }
+  .ds-item { background:var(--bg); border-radius:8px; padding:12px; }
+  .ds-val { font-family:'DM Mono',monospace; font-size:1.1rem; font-weight:500; }
+  .controls-row { display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; }
+
+  /* SENSOR LIVE (drone page) */
+  .sensor-mini { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-top:16px; }
+  .sm-item { background:var(--bg); border-radius:8px; padding:12px; display:flex; justify-content:space-between; align-items:center; }
+  .sm-val { font-family:'DM Mono',monospace; font-weight:500; }
+
+  /* AI REPORT */
+  .ai-box { background:linear-gradient(135deg,#f0f9ff,#e0f2fe); border:1px solid #bae6fd; border-radius:10px; padding:20px; }
+  .ai-response { background:#fff; border-radius:8px; padding:16px; font-size:.88rem; line-height:1.7; color:var(--text); white-space:pre-wrap; min-height:120px; border:1px solid var(--border); margin-top:12px; }
+  .report-section { margin-top:12px; }
+
+  /* MISC */
+  .section-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
+  .section-row h2 { margin:0; }
+  .tag { font-size:.72rem; padding:2px 8px; border-radius:20px; background:#e0f2fe; color:#0369a1; font-weight:500; }
+  .divider { height:1px; background:var(--border); margin:16px 0; }
+  .spinner { display:inline-block; width:16px; height:16px; border:2px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin .6s linear infinite; vertical-align:middle; margin-right:6px; }
+  @keyframes spin { to { transform:rotate(360deg) } }
+  .hidden { display:none; }
+  .full { grid-column:1/-1; }
+
+  @media(max-width:768px) {
+    .grid2,.grid4,.drone-status { grid-template-columns:1fr 1fr; }
+    .grid4 { grid-template-columns:repeat(2,1fr); }
+  }
+  @media(max-width:480px) {
+    .grid2,.drone-status { grid-template-columns:1fr; }
+    nav { padding:0 16px; }
+    .page { padding:16px; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">
+    <span>⬡</span> AquaDrone Monitor
+  </div>
+  <div class="nav-tabs">
+    <button class="tab active" onclick="showPage('dashboard',this)">Dashboard</button>
+    <button class="tab" onclick="showPage('drone',this)">Drone Control</button>
+    <button class="tab" onclick="showPage('report',this)">AI Report</button>
+  </div>
+  <div class="nav-status">
+    <div class="pulse"></div> Live · Drone #2
+  </div>
+</nav>
+
+<!-- DASHBOARD PAGE -->
+<div class="page active" id="page-dashboard">
+  <div class="grid4">
+    <div class="card param-card ph">
+      <h3>pH Level</h3>
+      <div><span class="param-val" id="ph-val">7.42</span><span class="param-unit">pH</span></div>
+      <div class="param-badge good" id="ph-badge">● Normal</div>
+      <div class="trend" id="ph-trend">↑ 0.03 from last sample</div>
+    </div>
+    <div class="card param-card do">
+      <h3>Dissolved Oxygen</h3>
+      <div><span class="param-val" id="do-val">8.1</span><span class="param-unit">mg/L</span></div>
+      <div class="param-badge good" id="do-badge">● Good</div>
+      <div class="trend" id="do-trend">↓ 0.2 from last sample</div>
+    </div>
+    <div class="card param-card turb">
+      <h3>Turbidity</h3>
+      <div><span class="param-val" id="turb-val">12.4</span><span class="param-unit">NTU</span></div>
+      <div class="param-badge warn" id="turb-badge">● Moderate</div>
+      <div class="trend" id="turb-trend">↑ 1.1 from last sample</div>
+    </div>
+    <div class="card param-card temp">
+      <h3>Temperature</h3>
+      <div><span class="param-val" id="temp-val">24.6</span><span class="param-unit">°C</span></div>
+      <div class="param-badge good" id="temp-badge">● Normal</div>
+      <div class="trend" id="temp-trend">↑ 0.4 from last sample</div>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <div class="section-row">
+        <h2>Live Graph</h2>
+        <select class="inp" style="width:auto;padding:5px 10px" id="graph-param" onchange="updateGraph()">
+          <option value="ph">pH</option>
+          <option value="do">Dissolved Oxygen</option>
+          <option value="turb">Turbidity</option>
+          <option value="temp">Temperature</option>
+        </select>
+      </div>
+      <div class="chart-wrap"><canvas id="liveChart"></canvas></div>
+    </div>
+
+    <div class="card">
+      <h2>Additional Parameters</h2>
+      <div style="display:grid;gap:10px">
+        <div class="sm-item"><div><h3>TDS</h3><div class="sm-val" id="tds-val">342 <small style="font-size:.7rem;color:var(--muted)">ppm</small></div></div><div class="param-badge good">Normal</div></div>
+        <div class="sm-item"><div><h3>Conductivity</h3><div class="sm-val" id="cond-val">680 <small style="font-size:.7rem;color:var(--muted)">µS/cm</small></div></div><div class="param-badge good">Normal</div></div>
+        <div class="sm-item"><div><h3>ORP</h3><div class="sm-val" id="orp-val">+220 <small style="font-size:.7rem;color:var(--muted)">mV</small></div></div><div class="param-badge good">Good</div></div>
+        <div class="sm-item"><div><h3>Chlorophyll-a</h3><div class="sm-val" id="chl-val">4.2 <small style="font-size:.7rem;color:var(--muted)">µg/L</small></div></div><div class="param-badge warn">Elevated</div></div>
+        <div class="sm-item"><div><h3>Salinity</h3><div class="sm-val" id="sal-val">0.38 <small style="font-size:.7rem;color:var(--muted)">ppt</small></div></div><div class="param-badge good">Normal</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DRONE CONTROL PAGE -->
+<div class="page" id="page-drone">
+  <div class="grid2">
+    <div>
+      <div class="card" style="margin-bottom:20px">
+        <div class="section-row"><h2>Drone Selection & Launch</h2><span class="tag">Flight Control</span></div>
+        <label>Select Drone</label>
+        <select class="inp" style="margin-bottom:12px" id="drone-select">
+          <option>Drone #1 — AquaSampler A</option>
+          <option selected>Drone #2 — AquaSampler B</option>
+          <option>Drone #3 — AquaSampler C</option>
+        </select>
+
+        <div class="divider"></div>
+        <label>Target Location</label>
+        <div class="input-row">
+          <div style="flex:1"><label>Latitude</label><input class="inp" id="lat-inp" placeholder="e.g. 13.0827" value="13.0827"></div>
+          <div style="flex:1"><label>Longitude</label><input class="inp" id="lon-inp" placeholder="e.g. 80.2707" value="80.2707"></div>
+        </div>
+        <div class="input-row" style="margin-bottom:0">
+          <input class="inp" id="loc-name" placeholder="Location name (optional)">
+          <button class="btn btn-outline" onclick="flyToCoords()">📍 Go</button>
+          <button class="btn btn-primary" onclick="launchDrone()">🚀 Launch</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-row"><h2>Sampling Controls</h2><span class="tag" id="sampling-tag">Idle</span></div>
+        <div class="drone-status">
+          <div class="ds-item"><h3>Altitude</h3><div class="ds-val" id="ds-alt">0 m</div></div>
+          <div class="ds-item"><h3>Battery</h3><div class="ds-val" id="ds-bat">87%</div></div>
+          <div class="ds-item"><h3>Signal</h3><div class="ds-val" id="ds-sig">Strong</div></div>
+        </div>
+        <div class="controls-row">
+          <button class="btn btn-green" onclick="releaseTube()">💧 Release Tube</button>
+          <button class="btn btn-primary" onclick="startPumping()">⬇ Start Pumping</button>
+          <button class="btn btn-danger" onclick="stopSampling()">■ Stop</button>
+          <button class="btn btn-outline" onclick="returnHome()">⏎ Return</button>
+        </div>
+        <div style="margin-top:12px;font-size:.8rem;color:var(--muted)" id="status-log">Ready. Select drone and choose location on map to begin.</div>
+
+        <div class="sensor-mini">
+          <div class="sm-item"><div><h3>pH</h3><span class="sm-val" id="d-ph">7.42</span></div></div>
+          <div class="sm-item"><div><h3>DO</h3><span class="sm-val" id="d-do">8.1 mg/L</span></div></div>
+          <div class="sm-item"><div><h3>Turbidity</h3><span class="sm-val" id="d-turb">12.4 NTU</span></div></div>
+          <div class="sm-item"><div><h3>Temp</h3><span class="sm-val" id="d-temp">24.6°C</span></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-row"><h2>Map — Click to set target</h2><span class="tag">Leaflet OSM</span></div>
+      <div id="map"></div>
+      <div style="margin-top:10px;font-size:.78rem;color:var(--muted)">📍 Click anywhere on the map to set coordinates automatically.</div>
+    </div>
+  </div>
+</div>
+
+<!-- AI REPORT PAGE -->
+<div class="page" id="page-report">
+  <div class="grid2">
+    <div>
+      <div class="card">
+        <div class="section-row"><h2>AI Analysis & Report</h2><span class="tag">Powered by Claude</span></div>
+        <label>Report Type</label>
+        <select class="inp" style="margin-bottom:12px" id="report-type">
+          <option>Full Water Quality Assessment</option>
+          <option>Contamination Risk Analysis</option>
+          <option>Aquatic Health Index</option>
+          <option>Custom Analysis</option>
+        </select>
+        <label>Additional Notes</label>
+        <textarea class="inp" rows="3" id="report-notes" placeholder="Add context, location details, or specific concerns..." style="resize:vertical;margin-bottom:12px"></textarea>
+        <button class="btn btn-primary" style="width:100%" onclick="generateReport()">⚡ Generate AI Report</button>
+      </div>
+
+      <div class="card" style="margin-top:20px">
+        <h2>Current Readings Snapshot</h2>
+        <div style="display:grid;gap:8px;font-size:.85rem">
+          <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)"><span style="color:var(--muted)">pH</span><span class="sm-val" id="r-ph">7.42</span></div>
+          <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)"><span style="color:var(--muted)">Dissolved Oxygen</span><span class="sm-val" id="r-do">8.1 mg/L</span></div>
+          <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)"><span style="color:var(--muted)">Turbidity</span><span class="sm-val" id="r-turb">12.4 NTU</span></div>
+          <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)"><span style="color:var(--muted)">Temperature</span><span class="sm-val" id="r-temp">24.6 °C</span></div>
+          <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)"><span style="color:var(--muted)">TDS</span><span class="sm-val">342 ppm</span></div>
+          <div style="display:flex;justify-content:space-between;padding:8px 0"><span style="color:var(--muted)">Conductivity</span><span class="sm-val">680 µS/cm</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card" style="height:100%">
+        <div class="section-row">
+          <h2>Analysis Output</h2>
+          <button class="btn btn-outline" id="download-btn" style="display:none" onclick="downloadReport()">⬇ Download PDF</button>
+        </div>
+        <div class="ai-box">
+          <div style="font-size:.82rem;color:#0369a1;font-weight:500">🤖 AI Water Quality Analyst</div>
+          <div style="font-size:.78rem;color:#0369a1;margin-top:2px">Analyzes sensor data against WHO & EPA standards</div>
+        </div>
+        <div class="ai-response" id="ai-output">Click "Generate AI Report" to analyze current sensor data and receive a detailed water quality assessment with recommendations.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// --- PAGE NAV ---
+function showPage(id, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  el.classList.add('active');
+  if(id === 'drone' && !mapInit) initMap();
+}
+
+// --- SENSOR DATA SIMULATION ---
+const sensorData = {
+  ph: { val: 7.42, min: 6.5, max: 8.5, unit: 'pH', drift: 0.05 },
+  do: { val: 8.1, min: 6, max: 12, unit: 'mg/L', drift: 0.2 },
+  turb: { val: 12.4, min: 0, max: 100, unit: 'NTU', drift: 0.5 },
+  temp: { val: 24.6, min: 10, max: 35, unit: '°C', drift: 0.1 }
+};
+
+const chartHistory = { ph: [], do: [], turb: [], temp: [] };
+const maxPoints = 30;
+
+function getRand(d) { return (Math.random() - 0.5) * d; }
+
+function updateSensor() {
+  for (const key in sensorData) {
+    const s = sensorData[key];
+    s.val = Math.max(s.min, Math.min(s.max, s.val + getRand(s.drift)));
+    chartHistory[key].push(s.val);
+    if (chartHistory[key].length > maxPoints) chartHistory[key].shift();
+  }
+  const ph = sensorData.ph.val;
+  document.getElementById('ph-val').textContent = ph.toFixed(2);
+  document.getElementById('do-val').textContent = sensorData.do.val.toFixed(1);
+  document.getElementById('turb-val').textContent = sensorData.turb.val.toFixed(1);
+  document.getElementById('temp-val').textContent = sensorData.temp.val.toFixed(1);
+
+  // Drone page
+  document.getElementById('d-ph').textContent = ph.toFixed(2);
+  document.getElementById('d-do').textContent = sensorData.do.val.toFixed(1)+' mg/L';
+  document.getElementById('d-turb').textContent = sensorData.turb.val.toFixed(1)+' NTU';
+  document.getElementById('d-temp').textContent = sensorData.temp.val.toFixed(1)+'°C';
+
+  // Report page
+  document.getElementById('r-ph').textContent = ph.toFixed(2);
+  document.getElementById('r-do').textContent = sensorData.do.val.toFixed(1)+' mg/L';
+  document.getElementById('r-turb').textContent = sensorData.turb.val.toFixed(1)+' NTU';
+  document.getElementById('r-temp').textContent = sensorData.temp.val.toFixed(1)+' °C';
+
+  updateGraph();
+}
+
+// --- CHART ---
+let chart;
+function initChart() {
+  const ctx = document.getElementById('liveChart').getContext('2d');
+  chart = new Chart(ctx, {
+    type: 'line',
+    data: { labels: Array(maxPoints).fill(''), datasets: [{
+      label: 'pH',
+      data: chartHistory.ph,
+      borderColor: '#0ea5e9', backgroundColor: 'rgba(14,165,233,.08)',
+      tension: 0.4, pointRadius: 0, fill: true, borderWidth: 2
+    }]},
+    options: {
+      responsive: true, maintainAspectRatio: false, animation: false,
+      scales: {
+        x: { display: false },
+        y: { grid: { color: '#f1f5f9' }, ticks: { font: { family: 'DM Mono', size: 11 } } }
+      },
+      plugins: { legend: { display: false }, tooltip: { mode: 'index', intersect: false } }
+    }
+  });
+}
+
+const paramColors = { ph:'#0ea5e9', do:'#10b981', turb:'#f59e0b', temp:'#ef4444' };
+function updateGraph() {
+  if (!chart) return;
+  const key = document.getElementById('graph-param').value;
+  chart.data.datasets[0].data = [...chartHistory[key]];
+  chart.data.datasets[0].borderColor = paramColors[key];
+  chart.data.datasets[0].backgroundColor = paramColors[key].replace(')',', .08)').replace('rgb','rgba').replace('#','rgba(').replace('rgba(0ea5e9',`rgba(${parseInt('0e',16)},${parseInt('a5',16)},${parseInt('e9',16)}`);
+  chart.data.labels = Array(chartHistory[key].length).fill('');
+  chart.update();
+}
+
+// --- MAP ---
+let mapInit = false, map, marker, targetMarker;
+function initMap() {
+  if (mapInit) return; mapInit = true;
+  map = L.map('map').setView([13.0827, 80.2707], 10);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{ attribution:'OSM' }).addTo(map);
+  const droneIcon = L.divIcon({ html:'<div style="font-size:20px;line-height:1">🚁</div>', iconSize:[28,28], className:'' });
+  marker = L.marker([13.0827, 80.2707], { icon: droneIcon }).addTo(map).bindPopup('Drone Base');
+  map.on('click', function(e) {
+    const {lat, lng} = e.latlng;
+    document.getElementById('lat-inp').value = lat.toFixed(5);
+    document.getElementById('lon-inp').value = lng.toFixed(5);
+    if (targetMarker) map.removeLayer(targetMarker);
+    targetMarker = L.marker([lat, lng]).addTo(map).bindPopup(`Target: ${lat.toFixed(4)}, ${lng.toFixed(4)}`).openPopup();
+  });
+}
+
+function flyToCoords() {
+  const lat = parseFloat(document.getElementById('lat-inp').value);
+  const lon = parseFloat(document.getElementById('lon-inp').value);
+  if (isNaN(lat)||isNaN(lon)) return;
+  if (!mapInit) initMap();
+  setTimeout(()=>{ map.flyTo([lat,lon],12); }, 100);
+}
+
+// --- DRONE CONTROLS ---
+let launched = false, pumping = false;
+function launchDrone() {
+  if (!mapInit) { showPage('drone', document.querySelectorAll('.tab')[1]); initMap(); return; }
+  const lat = parseFloat(document.getElementById('lat-inp').value);
+  const lon = parseFloat(document.getElementById('lon-inp').value);
+  launched = true;
+  document.getElementById('status-log').textContent = `🚀 Drone #2 launched → Target (${lat.toFixed(4)}, ${lon.toFixed(4)}). ETA ~4 min`;
+  document.getElementById('sampling-tag').textContent = 'In Flight';
+  document.getElementById('sampling-tag').style.background = '#dbeafe';
+  document.getElementById('sampling-tag').style.color = '#1d4ed8';
+  animateDrone(lat, lon);
+}
+
+function animateDrone(lat, lon) {
+  let alt = 0; const tick = setInterval(()=>{
+    alt += 5;
+    document.getElementById('ds-alt').textContent = alt+' m';
+    document.getElementById('ds-bat').textContent = Math.max(80, 87 - Math.floor(alt/30)) + '%';
+    if (alt >= 50) { clearInterval(tick); document.getElementById('status-log').textContent = `✅ Drone reached target. Hover altitude: 50m. Ready to release tube.`; }
+  }, 400);
+}
+
+function releaseTube() {
+  if (!launched) { document.getElementById('status-log').textContent = '⚠ Launch drone first.'; return; }
+  document.getElementById('status-log').textContent = '💧 Tube released. Descending to water surface...';
+  document.getElementById('sampling-tag').textContent = 'Tube Released';
+}
+function startPumping() {
+  if (!launched) { document.getElementById('status-log').textContent = '⚠ Launch drone first.'; return; }
+  pumping = true;
+  document.getElementById('status-log').textContent = '⬇ Pumping active. Live sensor data streaming...';
+  document.getElementById('sampling-tag').textContent = 'Sampling';
+  document.getElementById('sampling-tag').style.background = '#dcfce7';
+  document.getElementById('sampling-tag').style.color = '#16a34a';
+}
+function stopSampling() {
+  pumping = false;
+  document.getElementById('status-log').textContent = '■ Sampling stopped.';
+  document.getElementById('sampling-tag').textContent = 'Idle';
+  document.getElementById('sampling-tag').style.background = '';
+  document.getElementById('sampling-tag').style.color = '';
+}
+function returnHome() {
+  launched = false;
+  document.getElementById('status-log').textContent = '⏎ Drone returning to base...';
+  document.getElementById('ds-alt').textContent = '0 m';
+  document.getElementById('sampling-tag').textContent = 'Returning';
+}
+
+// --- AI REPORT ---
+let lastReport = '';
+async function generateReport() {
+  const type = document.getElementById('report-type').value;
+  const notes = document.getElementById('report-notes').value;
+  const snap = {
+    ph: sensorData.ph.val.toFixed(2),
+    do: sensorData.do.val.toFixed(1),
+    turb: sensorData.turb.val.toFixed(1),
+    temp: sensorData.temp.val.toFixed(1),
+    tds: 342, cond: 680, orp: 220, chl: 4.2
+  };
+
+  const output = document.getElementById('ai-output');
+  output.innerHTML = '<span class="spinner"></span> Analyzing sensor data...';
+
+  const prompt = `You are a water quality expert AI. Analyze the following real-time sensor data from a drone-mounted water sampling device and generate a professional ${type} report.
+
+Sensor Readings:
+- pH: ${snap.ph}
+- Dissolved Oxygen: ${snap.do} mg/L
+- Turbidity: ${snap.turb} NTU
+- Temperature: ${snap.temp} °C
+- TDS: ${snap.tds} ppm
+- Conductivity: ${snap.cond} µS/cm
+- ORP: +${snap.orp} mV
+- Chlorophyll-a: 4.2 µg/L
+
+${notes ? 'Additional context: ' + notes : ''}
+
+Provide:
+1. EXECUTIVE SUMMARY (2-3 sentences)
+2. PARAMETER ANALYSIS (evaluate each reading vs WHO/EPA standards)
+3. RISK ASSESSMENT (Low/Medium/High with reasoning)
+4. RECOMMENDATIONS (actionable steps)
+5. OVERALL WATER QUALITY INDEX (score out of 100)
+
+Be concise, professional, and factual. Use plain text, no markdown symbols.`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await res.json();
+    lastReport = data.content?.map(b => b.text || '').join('') || 'No response.';
+    output.textContent = lastReport;
+    document.getElementById('download-btn').style.display = '';
+  } catch(e) {
+    // Demo fallback
+    lastReport = `EXECUTIVE SUMMARY
+The water sample collected at the target location shows generally acceptable water quality with minor concerns regarding turbidity and chlorophyll-a levels. Immediate risk to public health is low, though environmental monitoring is recommended.
+
+PARAMETER ANALYSIS
+• pH (${snap.ph}): Within WHO acceptable range of 6.5–8.5. Slightly alkaline, consistent with healthy aquatic environment.
+• Dissolved Oxygen (${snap.do} mg/L): Above the 7 mg/L threshold for most aquatic life. Good oxygenation observed.
+• Turbidity (${snap.turb} NTU): Slightly elevated above WHO drinking water guideline of 5 NTU. Indicates moderate suspended particles — likely natural sediment.
+• Temperature (${snap.temp} °C): Within normal range. Slight warming trend observed; continued monitoring advised.
+• TDS (342 ppm): Below EPA secondary maximum of 500 ppm. Acceptable mineral content.
+• Conductivity (680 µS/cm): Normal for freshwater bodies. No salinity intrusion detected.
+• ORP (+220 mV): Positive redox potential confirms oxidizing, aerobic conditions — favorable for water health.
+• Chlorophyll-a (4.2 µg/L): Slightly elevated. May indicate early-stage nutrient enrichment (oligotrophic-mesotrophic boundary).
+
+RISK ASSESSMENT: LOW-MEDIUM
+Turbidity and chlorophyll-a require attention. No immediate contamination risk detected. Seasonal variation may be a contributing factor.
+
+RECOMMENDATIONS
+1. Conduct follow-up sampling in 7 days to track turbidity trend.
+2. Investigate upstream agricultural runoff as a potential source of elevated nutrients.
+3. Install continuous monitoring buoy if turbidity exceeds 20 NTU.
+4. Test for nitrates and phosphates in next sampling cycle.
+
+OVERALL WATER QUALITY INDEX: 74 / 100 — GOOD`;
+    output.textContent = lastReport;
+    document.getElementById('download-btn').style.display = '';
+  }
+}
+
+function downloadReport() {
+  const blob = new Blob([
+    `AQUADRONE WATER QUALITY REPORT\nGenerated: ${new Date().toLocaleString()}\nDrone: #2 — AquaSampler B\n\n${lastReport}`
+  ], { type: 'text/plain' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = `WaterQualityReport_${new Date().toISOString().split('T')[0]}.txt`;
+  a.click();
+}
+
+// --- INIT ---
+initChart();
+// Prefill chart
+for (let i = 0; i < maxPoints; i++) {
+  for (const key in sensorData) { chartHistory[key].push(sensorData[key].val + getRand(sensorData[key].drift * 3)); }
+}
+setInterval(updateSensor, 1500);
+</script>
+</body>
+</html>
