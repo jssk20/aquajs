@@ -32,19 +32,25 @@ nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24
 .page{display:none;padding:22px 24px;}
 .page.on{display:block;}
 .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px;}
+.grid5{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:18px;}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
 .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);}
 .card-title{font-size:.92rem;font-weight:600;margin-bottom:14px;}
 .stat-card{border-top:3px solid var(--border);}
-.stat-card.c1{border-top-color:#0ea5e9;}.stat-card.c2{border-top-color:#10b981;}
-.stat-card.c3{border-top-color:#8b5cf6;}.stat-card.c4{border-top-color:#f59e0b;}
+.stat-card.c1{border-top-color:#0ea5e9;}
+.stat-card.c2{border-top-color:#10b981;}
+.stat-card.c3{border-top-color:#8b5cf6;}
+.stat-card.c4{border-top-color:#f59e0b;}
+.stat-card.c5{border-top-color:#ef4444;}
 .stat-label{font-size:.75rem;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;}
 .stat-val{font-family:'DM Mono',monospace;font-size:2rem;font-weight:500;line-height:1;}
 .stat-unit{font-size:.72rem;color:var(--muted);}
 .badge{display:inline-block;font-size:.7rem;padding:2px 8px;border-radius:20px;margin-top:7px;font-weight:500;}
-.b-good{background:#dcfce7;color:#16a34a;}.b-warn{background:#fef9c3;color:#ca8a04;}
-.b-bad{background:#fee2e2;color:#dc2626;}.b-info{background:#dbeafe;color:#1d4ed8;}
-.chart-box{position:relative;height:210px;}
+.b-good{background:#dcfce7;color:#16a34a;}
+.b-warn{background:#fef9c3;color:#ca8a04;}
+.b-bad{background:#fee2e2;color:#dc2626;}
+.b-info{background:#dbeafe;color:#1d4ed8;}
+.chart-box{position:relative;height:200px;}
 .row{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
 .tag{font-size:.7rem;padding:2px 8px;border-radius:20px;background:#e0f2fe;color:#0369a1;font-weight:500;}
 .inp{width:100%;padding:8px 11px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:.84rem;background:var(--bg);outline:none;}
@@ -57,8 +63,8 @@ label{font-size:.78rem;color:var(--muted);display:block;margin-bottom:3px;}
 .btn-red{background:#fee2e2;color:var(--red);}.btn-red:hover{background:#fecaca;}
 .btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text);}.btn-ghost:hover{background:var(--bg);}
 select.inp{cursor:pointer;}
-#map{height:320px;border-radius:9px;border:1px solid var(--border);}
-.mini-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;}
+#map{height:300px;border-radius:9px;border:1px solid var(--border);}
+.mini-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;}
 .mini-item{background:var(--bg);border-radius:8px;padding:10px;display:flex;justify-content:space-between;align-items:center;font-size:.82rem;}
 .mini-val{font-family:'DM Mono',monospace;font-weight:500;font-size:.88rem;}
 .ds-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;}
@@ -67,9 +73,19 @@ select.inp{cursor:pointer;}
 .ds-val{font-family:'DM Mono',monospace;font-size:1rem;font-weight:500;}
 .ctrl-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
 .divider{height:1px;background:var(--border);margin:12px 0;}
-.log{background:var(--bg);border-radius:8px;padding:9px 11px;font-family:'DM Mono',monospace;font-size:.72rem;color:var(--muted);height:100px;overflow-y:auto;}
+.log{background:var(--bg);border-radius:8px;padding:9px 11px;font-family:'DM Mono',monospace;font-size:.72rem;color:var(--muted);height:110px;overflow-y:auto;}
 .log-line{padding:1px 0;border-bottom:1px solid var(--border);}
 .log-line:last-child{border-bottom:none;}
+
+/* Bottle fill visualizer */
+.bottle-wrap{display:flex;flex-direction:column;align-items:center;gap:8px;}
+.bottle-svg{width:60px;}
+.fill-pct{font-family:'DM Mono',monospace;font-size:1.4rem;font-weight:500;}
+.fill-label{font-size:.72rem;color:var(--muted);}
+.progress-bar{width:100%;height:10px;background:#e2e8f0;border-radius:10px;overflow:hidden;margin-top:6px;}
+.progress-fill{height:100%;border-radius:10px;transition:width .5s,background .3s;}
+
+/* ESP32 page */
 .pin-tbl{width:100%;border-collapse:collapse;font-size:.81rem;}
 .pin-tbl th{background:var(--bg);padding:7px 10px;text-align:left;font-size:.72rem;color:var(--muted);text-transform:uppercase;border-bottom:1px solid var(--border);}
 .pin-tbl td{padding:8px 10px;border-bottom:1px solid var(--border);}
@@ -77,18 +93,19 @@ select.inp{cursor:pointer;}
 .chip{font-family:'DM Mono',monospace;font-size:.72rem;padding:2px 7px;border-radius:5px;font-weight:500;}
 .cp{background:#fee2e2;color:#dc2626;}.cg{background:#f1f5f9;color:#475569;}
 .cs{background:#dbeafe;color:#1d4ed8;}.ca{background:#fef9c3;color:#92400e;}
-.code{background:#0f172a;color:#e2e8f0;border-radius:9px;padding:14px;font-family:'DM Mono',monospace;font-size:.76rem;line-height:1.65;overflow-x:auto;}
+.co{background:#f3e8ff;color:#7e22ce;}
+.code{background:#0f172a;color:#e2e8f0;border-radius:9px;padding:14px;font-family:'DM Mono',monospace;font-size:.76rem;line-height:1.65;overflow-x:auto;max-height:520px;overflow-y:auto;}
 .kw{color:#7dd3fc;}.fn{color:#86efac;}.st{color:#fde68a;}.cm{color:#64748b;font-style:italic;}.nm{color:#f9a8d4;}
 .ai-box{background:linear-gradient(135deg,#f0f9ff,#e0f2fe);border:1px solid #bae6fd;border-radius:9px;padding:16px;}
 .ai-out{background:#fff;border-radius:7px;padding:14px;font-size:.86rem;line-height:1.7;white-space:pre-wrap;min-height:100px;border:1px solid var(--border);margin-top:10px;}
 .spinner{display:inline-block;width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;margin-right:5px;}
 @keyframes spin{to{transform:rotate(360deg)}}
 .warn-box{padding:9px 12px;background:#fef9c3;border-radius:7px;font-size:.77rem;color:#92400e;margin-top:10px;}
-.thr-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
-.thr-row label{width:120px;flex-shrink:0;font-size:.78rem;color:var(--muted);}
-.thr-row input[type=range]{flex:1;}
-.thr-row span{font-family:'DM Mono',monospace;font-size:.78rem;min-width:55px;text-align:right;}
-@media(max-width:700px){.grid4,.grid2{grid-template-columns:1fr 1fr;}}
+.alert-box{padding:9px 12px;background:#fee2e2;border:1px solid #fca5a5;border-radius:7px;font-size:.8rem;color:#991b1b;font-weight:500;}
+/* pump panel inside drone tab */
+.pump-panel{background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:1px solid #86efac;border-radius:9px;padding:14px;margin-bottom:12px;}
+@media(max-width:900px){.grid5{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:700px){.grid4,.grid5,.grid2{grid-template-columns:1fr 1fr;}}
 @media(max-width:440px){.grid2,.ds-grid{grid-template-columns:1fr;}nav{padding:0 12px;}.page{padding:14px;}.tab{padding:5px 8px;font-size:.75rem;}}
 </style>
 </head>
@@ -98,9 +115,8 @@ select.inp{cursor:pointer;}
   <div class="logo"><i>⬡</i> AquaDrone</div>
   <div class="tabs">
     <button class="tab on" onclick="go('dash',this)">Dashboard</button>
-    <button class="tab"    onclick="go('pump',this)">Pump</button>
-    <button class="tab"    onclick="go('drone',this)">Drone</button>
-    <button class="tab"    onclick="go('hw',this)">ESP32</button>
+    <button class="tab"    onclick="go('drone',this)">Drone Control</button>
+    <button class="tab"    onclick="go('hw',this)">ESP32 Setup</button>
     <button class="tab"    onclick="go('ai',this)">AI Report</button>
   </div>
   <div class="conn-area">
@@ -111,106 +127,116 @@ select.inp{cursor:pointer;}
 </nav>
 
 <div class="banner" id="banner">
-  🔌 Plug ESP32 via USB → click <strong>Connect ESP32</strong> → select the COM port. Works in <strong>Chrome / Edge only</strong>. Close Arduino Serial Monitor first.
+  🔌 Plug ESP32 via USB → click <strong>Connect ESP32</strong> → select COM port. <strong>Chrome / Edge only.</strong> Close Arduino Serial Monitor first.
 </div>
 
-<!-- DASHBOARD -->
+<!-- ═══════════════════════════════════════════════════════
+     DASHBOARD
+════════════════════════════════════════════════════════ -->
 <div class="page on" id="page-dash">
-  <div class="grid4">
+
+  <div class="grid5">
+    <!-- TDS -->
     <div class="card stat-card c1">
       <div class="stat-label">TDS</div>
       <div><span class="stat-val" id="v-tds">—</span><span class="stat-unit"> ppm</span></div>
       <div class="badge b-info" id="b-tds">● Waiting</div>
+      <div style="font-size:.7rem;color:var(--muted);margin-top:4px">Normal: &lt; 100 ppm</div>
     </div>
+    <!-- TDS status -->
+    <div class="card stat-card c5">
+      <div class="stat-label">Water Status</div>
+      <div class="stat-val" id="v-wstatus" style="font-size:1.2rem;margin-top:6px">—</div>
+      <div class="badge b-info" id="b-wstatus">● Waiting</div>
+      <div style="font-size:.7rem;color:var(--muted);margin-top:4px">Threshold: 100 ppm</div>
+    </div>
+    <!-- Bottle fill -->
     <div class="card stat-card c2">
+      <div class="stat-label">Bottle Level</div>
+      <div><span class="stat-val" id="v-fill">—</span><span class="stat-unit"> %</span></div>
+      <div class="badge b-info" id="b-fill">● Waiting</div>
+      <div class="progress-bar" style="margin-top:8px"><div class="progress-fill" id="fill-bar" style="width:0%;background:#10b981"></div></div>
+    </div>
+    <!-- Pump -->
+    <div class="card stat-card c3">
       <div class="stat-label">Pump Relay</div>
       <div class="stat-val" id="v-pump" style="font-size:1.4rem;margin-top:6px">—</div>
       <div class="badge b-info" id="b-pump">● Waiting</div>
+      <div style="font-size:.7rem;color:var(--muted);margin-top:4px">Cycles: <span id="v-cyc">—</span></div>
     </div>
-    <div class="card stat-card c3">
+    <!-- Drone alt -->
+    <div class="card stat-card c4">
       <div class="stat-label">Drone Alt</div>
       <div><span class="stat-val" id="v-alt">0</span><span class="stat-unit"> m</span></div>
       <div class="badge b-info" id="b-alt">● Grounded</div>
-    </div>
-    <div class="card stat-card c4">
-      <div class="stat-label">ESP32 Uptime</div>
-      <div class="stat-val" id="v-up" style="font-size:1.4rem;margin-top:6px">—</div>
-      <div class="badge b-info">● Live</div>
+      <div style="font-size:.7rem;color:var(--muted);margin-top:4px">Uptime: <span id="v-up">—</span></div>
     </div>
   </div>
+
+  <!-- Bottle full alert (hidden by default) -->
+  <div class="alert-box hidden" id="bottle-alert" style="margin-bottom:16px">
+    🚨 Bottle is full! Pump stopped automatically. Remove the bottle before resuming.
+  </div>
+
   <div class="grid2">
+    <!-- TDS chart -->
     <div class="card">
       <div class="row">
         <div class="card-title">TDS — Real-time</div>
-        <div style="display:flex;align-items:center;gap:6px;font-size:.72rem;color:var(--muted)">WHO 500ppm <span style="width:20px;height:2px;background:var(--amber);display:inline-block;border-radius:2px"></span></div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:.72rem;color:var(--muted)">
+          Threshold 100ppm
+          <span style="width:20px;height:2px;background:var(--red);display:inline-block;border-radius:2px"></span>
+        </div>
       </div>
-      <div class="chart-box"><canvas id="chartMain"></canvas></div>
+      <div class="chart-box"><canvas id="chartTDS"></canvas></div>
     </div>
+    <!-- Bottle fill + mini stats -->
     <div class="card">
-      <div class="card-title">TDS Quality Scale</div>
-      <div style="display:grid;gap:7px">
-        <div class="mini-item"><span>0–50 ppm <small style="color:var(--muted)">Pure</small></span><div class="badge b-good">Excellent</div></div>
-        <div class="mini-item"><span>50–300 ppm <small style="color:var(--muted)">Filtered</small></span><div class="badge b-good">Good</div></div>
-        <div class="mini-item"><span>300–500 ppm <small style="color:var(--muted)">Tap</small></span><div class="badge b-good">Acceptable</div></div>
-        <div class="mini-item"><span>500–900 ppm <small style="color:var(--muted)">Hard</small></span><div class="badge b-warn">Monitor</div></div>
-        <div class="mini-item"><span>&gt;900 ppm <small style="color:var(--muted)">Contaminated</small></span><div class="badge b-bad">Alert</div></div>
+      <div class="row"><div class="card-title">Bottle Fill Level</div><span class="tag">Ultrasonic</span></div>
+      <div style="display:flex;gap:20px;align-items:center">
+        <!-- SVG bottle -->
+        <div class="bottle-wrap">
+          <svg viewBox="0 0 60 110" class="bottle-svg" xmlns="http://www.w3.org/2000/svg">
+            <!-- cap -->
+            <rect x="22" y="2" width="16" height="10" rx="3" fill="#94a3b8"/>
+            <!-- neck -->
+            <rect x="24" y="12" width="12" height="10" rx="2" fill="#cbd5e1"/>
+            <!-- body outline -->
+            <rect x="10" y="22" width="40" height="80" rx="8" fill="#f0f9ff" stroke="#bae6fd" stroke-width="1.5"/>
+            <!-- water fill (clips from bottom) -->
+            <clipPath id="bottleClip">
+              <rect x="10" y="22" width="40" height="80" rx="8"/>
+            </clipPath>
+            <rect id="bottleFillRect" x="10" y="102" width="40" height="0" clip-path="url(#bottleClip)" fill="#0ea5e9" opacity=".7"/>
+            <!-- ultrasonic waves inside -->
+            <text x="30" y="70" text-anchor="middle" font-size="14" fill="#94a3b8">〜</text>
+          </svg>
+          <div class="fill-pct" id="fill-pct">—</div>
+          <div class="fill-label">fill level</div>
+        </div>
+        <!-- mini stats -->
+        <div style="flex:1;display:grid;gap:8px">
+          <div class="mini-item"><span style="color:var(--muted)">Distance</span><span class="mini-val" id="v-dist">— cm</span></div>
+          <div class="mini-item"><span style="color:var(--muted)">Bottle depth</span><span class="mini-val" id="v-bdepth">20 cm</span></div>
+          <div class="mini-item"><span style="color:var(--muted)">Stop at</span><span class="mini-val">90%</span></div>
+          <div class="mini-item"><span style="color:var(--muted)">TDS raw</span><span class="mini-val" id="v-tdsraw">— ppm</span></div>
+        </div>
+      </div>
+      <!-- TDS quality note -->
+      <div style="margin-top:14px;padding:10px;background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;font-size:.78rem;color:#9a3412">
+        <strong>Water Quality Rule:</strong> TDS ≥ 100 ppm = Abnormal / Contaminated. TDS &lt; 100 ppm = Normal / Clean.
       </div>
     </div>
   </div>
 </div>
 
-<!-- PUMP -->
-<div class="page" id="page-pump">
-  <div class="grid2">
-    <div>
-      <div class="card" style="margin-bottom:16px">
-        <div class="row"><div class="card-title">Manual Pump Control</div><span class="tag">GPIO 26</span></div>
-        <div style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:1px solid #86efac;border-radius:9px;padding:14px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center">
-          <div>
-            <div style="font-size:.78rem;color:#065f46;font-weight:500">Pump Status</div>
-            <div style="font-size:1.3rem;font-weight:600;color:#065f46;margin-top:2px" id="p-status">● —</div>
-          </div>
-          <div style="text-align:right;font-size:.78rem;color:#065f46">
-            Cycles: <span id="p-cycles">—</span><br>
-            Run: <span id="p-run">—</span>
-          </div>
-        </div>
-        <div style="display:flex;gap:8px">
-          <button class="btn btn-green" style="flex:1;padding:12px" onclick="cmdPump('ON')">⬇ Pump ON</button>
-          <button class="btn btn-red"   style="flex:1;padding:12px" onclick="cmdPump('OFF')">■ Pump OFF</button>
-        </div>
-        <div class="warn-box">💡 Sends "ON" / "OFF" over USB Serial → ESP32 reads it in loop().</div>
-      </div>
-      <div class="card">
-        <div class="row"><div class="card-title">Auto-Trigger</div><span class="tag">On ESP32</span></div>
-        <div class="thr-row"><label>High limit</label><input type="range" min="200" max="900" step="10" value="500" oninput="document.getElementById('th-hi').textContent=this.value+' ppm'"><span id="th-hi">500 ppm</span></div>
-        <div class="thr-row"><label>Low cutoff</label><input type="range" min="50"  max="400" step="10" value="200" oninput="document.getElementById('th-lo').textContent=this.value+' ppm'"><span id="th-lo">200 ppm</span></div>
-        <div class="divider"></div>
-        <div style="display:flex;gap:8px">
-          <button class="btn btn-green" onclick="cmdPump('AUTO')">▶ Auto Mode</button>
-          <button class="btn btn-ghost" onclick="cmdPump('MANUAL')">⏸ Manual</button>
-        </div>
-      </div>
-    </div>
-    <div class="card">
-      <div class="row"><div class="card-title">Live TDS Chart</div><span class="tag">USB Serial</span></div>
-      <div class="chart-box" style="height:160px;margin-bottom:12px"><canvas id="chartPump"></canvas></div>
-      <div class="mini-grid">
-        <div class="mini-item"><span style="color:var(--muted)">TDS</span><span class="mini-val" id="p-tds">—</span></div>
-        <div class="mini-item"><span style="color:var(--muted)">Relay</span><span class="mini-val" id="p-relay">—</span></div>
-        <div class="mini-item"><span style="color:var(--muted)">Run time</span><span class="mini-val" id="p-run2">—</span></div>
-        <div class="mini-item"><span style="color:var(--muted)">Uptime</span><span class="mini-val" id="p-up">—</span></div>
-      </div>
-      <div style="margin-top:12px;font-size:.82rem;font-weight:500;margin-bottom:6px">Event log</div>
-      <div class="log" id="log"><div class="log-line">Waiting for connection...</div></div>
-    </div>
-  </div>
-</div>
-
-<!-- DRONE -->
+<!-- ═══════════════════════════════════════════════════════
+     DRONE CONTROL (includes pump controls)
+════════════════════════════════════════════════════════ -->
 <div class="page" id="page-drone">
   <div class="grid2">
     <div>
+      <!-- Launch -->
       <div class="card" style="margin-bottom:16px">
         <div class="row"><div class="card-title">Launch Control</div><span class="tag">Flight</span></div>
         <label>Drone</label>
@@ -231,26 +257,80 @@ select.inp{cursor:pointer;}
           <button class="btn btn-blue"  onclick="launch()">🚀 Launch</button>
         </div>
       </div>
+
+      <!-- Sampling + Pump (merged) -->
       <div class="card">
-        <div class="row"><div class="card-title">Sampling Controls</div><span class="tag" id="s-tag">Idle</span></div>
+        <div class="row"><div class="card-title">Sampling &amp; Pump Control</div><span class="tag" id="s-tag">Idle</span></div>
+
+        <!-- Drone status -->
         <div class="ds-grid">
           <div class="ds-item"><div class="ds-label">Altitude</div><div class="ds-val" id="d-alt">0 m</div></div>
           <div class="ds-item"><div class="ds-label">Battery</div><div class="ds-val" id="d-bat">87%</div></div>
           <div class="ds-item"><div class="ds-label">Signal</div><div class="ds-val">Strong</div></div>
         </div>
+
+        <!-- Flight controls -->
         <div class="ctrl-row">
-          <button class="btn btn-green" onclick="releaseTube()">💧 Release</button>
-          <button class="btn btn-blue"  onclick="startPump()">⬇ Pump</button>
-          <button class="btn btn-red"   onclick="stopAll()">■ Stop</button>
+          <button class="btn btn-ghost" onclick="releaseTube()">💧 Release Tube</button>
+          <button class="btn btn-blue"  onclick="startPump()">⬇ Start Pump</button>
+          <button class="btn btn-red"   onclick="stopAll()">■ Stop All</button>
           <button class="btn btn-ghost" onclick="returnHome()">⏎ Return</button>
         </div>
-        <div style="margin-top:10px;font-size:.78rem;color:var(--muted)" id="s-log">Ready. Select drone and choose location.</div>
-        <div class="mini-grid">
-          <div class="mini-item"><span style="color:var(--muted)">TDS live</span><span class="mini-val" id="d-tds">—</span></div>
-          <div class="mini-item"><span style="color:var(--muted)">Pump</span><span class="mini-val" id="d-pump">—</span></div>
+        <div style="margin-top:10px;font-size:.78rem;color:var(--muted);margin-bottom:12px" id="s-log">Ready. Select drone and pick a location on the map.</div>
+
+        <div class="divider"></div>
+
+        <!-- Pump status panel -->
+        <div class="pump-panel">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <div style="font-size:.78rem;color:#065f46;font-weight:500">Pump / Relay Status</div>
+              <div style="font-size:1.2rem;font-weight:600;color:#065f46;margin-top:2px" id="dp-status">● —</div>
+            </div>
+            <div style="text-align:right;font-size:.78rem;color:#065f46">
+              Cycles: <span id="dp-cycles">—</span><br>
+              Run: <span id="dp-run">—</span>
+            </div>
+          </div>
         </div>
+
+        <!-- Manual pump buttons -->
+        <div style="display:flex;gap:8px;margin-bottom:10px">
+          <button class="btn btn-green" style="flex:1" onclick="cmdPump('ON')">⬇ Pump ON</button>
+          <button class="btn btn-red"   style="flex:1" onclick="cmdPump('OFF')">■ Pump OFF</button>
+        </div>
+
+        <!-- Bottle fill in drone tab -->
+        <div style="background:var(--bg);border-radius:8px;padding:12px">
+          <div style="font-size:.8rem;font-weight:600;margin-bottom:8px;color:var(--text)">Bottle Fill (Ultrasonic)</div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="flex:1">
+              <div class="progress-bar" style="height:14px"><div class="progress-fill" id="fill-bar2" style="width:0%;background:#10b981"></div></div>
+            </div>
+            <span class="mini-val" id="dfill-pct">—</span>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:8px">
+            <div class="mini-item" style="flex-direction:column;align-items:flex-start;gap:2px">
+              <span style="font-size:.68rem;color:var(--muted)">Distance</span>
+              <span class="mini-val" id="d-dist">— cm</span>
+            </div>
+            <div class="mini-item" style="flex-direction:column;align-items:flex-start;gap:2px">
+              <span style="font-size:.68rem;color:var(--muted)">TDS</span>
+              <span class="mini-val" id="d-tds">— ppm</span>
+            </div>
+            <div class="mini-item" style="flex-direction:column;align-items:flex-start;gap:2px">
+              <span style="font-size:.68rem;color:var(--muted)">Water</span>
+              <span class="mini-val" id="d-wq" style="font-size:.78rem">—</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:10px;font-size:.82rem;font-weight:500;margin-bottom:6px">Event log</div>
+        <div class="log" id="log"><div class="log-line">Waiting for ESP32...</div></div>
       </div>
     </div>
+
+    <!-- Map -->
     <div class="card">
       <div class="row"><div class="card-title">Map — click to set target</div><span class="tag">OSM</span></div>
       <div id="map"></div>
@@ -259,76 +339,106 @@ select.inp{cursor:pointer;}
   </div>
 </div>
 
-<!-- ESP32 SETUP -->
+<!-- ═══════════════════════════════════════════════════════
+     ESP32 SETUP
+════════════════════════════════════════════════════════ -->
 <div class="page" id="page-hw">
   <div class="grid2">
     <div>
       <div class="card" style="margin-bottom:16px">
-        <div class="row"><div class="card-title">Wiring</div><span class="tag">Hardware</span></div>
+        <div class="row"><div class="card-title">Wiring Connections</div><span class="tag">Hardware</span></div>
+
         <div style="font-weight:600;font-size:.83rem;margin-bottom:8px">① TDS Sensor → ESP32</div>
         <table class="pin-tbl" style="margin-bottom:16px">
-          <thead><tr><th>TDS Pin</th><th>Wire colour</th><th>ESP32 Pin</th></tr></thead>
+          <thead><tr><th>TDS Pin</th><th>Wire</th><th>ESP32</th></tr></thead>
           <tbody>
-            <tr><td>VCC</td><td><span style="color:#ef4444">●</span> Red</td><td><span class="chip cp">3V3</span></td></tr>
-            <tr><td>GND</td><td><span style="color:#64748b">●</span> Black</td><td><span class="chip cg">GND</span></td></tr>
-            <tr><td>AOUT</td><td><span style="color:#f59e0b">●</span> Yellow</td><td><span class="chip ca">GPIO 34</span></td></tr>
+            <tr><td>VCC</td><td><span style="color:#ef4444">● Red</span></td><td><span class="chip cp">3V3</span></td></tr>
+            <tr><td>GND</td><td><span style="color:#64748b">● Black</span></td><td><span class="chip cg">GND</span></td></tr>
+            <tr><td>AOUT</td><td><span style="color:#f59e0b">● Yellow</span></td><td><span class="chip ca">GPIO 34</span></td></tr>
           </tbody>
         </table>
+
         <div style="font-weight:600;font-size:.83rem;margin-bottom:8px">② Relay Module → ESP32 + Pump</div>
-        <table class="pin-tbl">
-          <thead><tr><th>Relay Pin</th><th>Wire colour</th><th>Connect to</th></tr></thead>
+        <table class="pin-tbl" style="margin-bottom:16px">
+          <thead><tr><th>Relay Pin</th><th>Wire</th><th>Connect to</th></tr></thead>
           <tbody>
-            <tr><td>VCC</td><td><span style="color:#ef4444">●</span> Red</td><td><span class="chip cp">ESP32 VIN</span></td></tr>
-            <tr><td>GND</td><td><span style="color:#64748b">●</span> Black</td><td><span class="chip cg">ESP32 GND</span></td></tr>
-            <tr><td>IN1</td><td><span style="color:#0ea5e9">●</span> Blue</td><td><span class="chip cs">GPIO 26</span></td></tr>
-            <tr><td>COM</td><td><span style="color:#ef4444">●</span> Red</td><td><span class="chip cp">PSU (+)</span></td></tr>
-            <tr><td>NO</td><td><span style="color:#10b981">●</span> Green</td><td>Pump (+) wire</td></tr>
-            <tr><td>—</td><td><span style="color:#64748b">●</span> Black</td><td>PSU(−) → Pump(−)</td></tr>
+            <tr><td>VCC</td><td><span style="color:#ef4444">● Red</span></td><td><span class="chip cp">ESP32 VIN</span></td></tr>
+            <tr><td>GND</td><td><span style="color:#64748b">● Black</span></td><td><span class="chip cg">ESP32 GND</span></td></tr>
+            <tr><td>IN1</td><td><span style="color:#0ea5e9">● Blue</span></td><td><span class="chip cs">GPIO 26</span></td></tr>
+            <tr><td>COM</td><td><span style="color:#ef4444">● Red</span></td><td><span class="chip cp">PSU (+)</span></td></tr>
+            <tr><td>NO</td><td><span style="color:#10b981">● Green</span></td><td>Pump (+) wire</td></tr>
+            <tr><td>—</td><td><span style="color:#64748b">● Black</span></td><td>PSU(−) → Pump(−)</td></tr>
           </tbody>
         </table>
-        <div class="warn-box">⚠ GPIO 34 is input-only. Relay IN1 is active-LOW — LOW signal = pump ON. Close Arduino Serial Monitor before connecting here.</div>
+
+        <div style="font-weight:600;font-size:.83rem;margin-bottom:8px">③ HC-SR04 Ultrasonic → ESP32</div>
+        <table class="pin-tbl">
+          <thead><tr><th>HC-SR04 Pin</th><th>Wire</th><th>ESP32</th></tr></thead>
+          <tbody>
+            <tr><td>VCC</td><td><span style="color:#ef4444">● Red</span></td><td><span class="chip cp">VIN / 5V</span></td></tr>
+            <tr><td>GND</td><td><span style="color:#64748b">● Black</span></td><td><span class="chip cg">GND</span></td></tr>
+            <tr><td>TRIG</td><td><span style="color:#8b5cf6">● Purple</span></td><td><span class="chip co">GPIO 27</span></td></tr>
+            <tr><td>ECHO</td><td><span style="color:#0ea5e9">● Blue</span></td><td><span class="chip cs">GPIO 14</span></td></tr>
+          </tbody>
+        </table>
+        <div class="warn-box">
+          ⚠ HC-SR04 ECHO outputs 5V — use a voltage divider (1kΩ + 2kΩ) to drop it to 3.3V before GPIO 14.<br>
+          ⚠ GPIO 34 is input-only. Relay IN1 is active-LOW (LOW = pump ON).
+        </div>
       </div>
+
       <div class="card">
-        <div class="card-title">Quick Setup Steps</div>
+        <div class="card-title">Setup Steps</div>
         <div style="font-size:.82rem;display:grid;gap:8px">
-          <div style="padding:9px;background:#f0f9ff;border-left:3px solid var(--accent);border-radius:0 7px 7px 0">1. Flash the code (right panel) via Arduino IDE at 115200 baud</div>
-          <div style="padding:9px;background:#f0fdf4;border-left:3px solid var(--green);border-radius:0 7px 7px 0">2. Close Arduino Serial Monitor completely</div>
-          <div style="padding:9px;background:#fef9c3;border-left:3px solid var(--amber);border-radius:0 7px 7px 0">3. Open this dashboard in Chrome or Edge (not Firefox)</div>
-          <div style="padding:9px;background:#f0f9ff;border-left:3px solid var(--accent);border-radius:0 7px 7px 0">4. Click "Connect ESP32" → select your COM port</div>
-          <div style="padding:9px;background:#f0fdf4;border-left:3px solid var(--green);border-radius:0 7px 7px 0">5. Real TDS values appear instantly on Dashboard</div>
+          <div style="padding:9px;background:#f0f9ff;border-left:3px solid var(--accent);border-radius:0 7px 7px 0">1. Flash the code (right panel) at 115200 baud</div>
+          <div style="padding:9px;background:#f0fdf4;border-left:3px solid var(--green);border-radius:0 7px 7px 0">2. Mount ultrasonic sensor pointing down into bottle neck</div>
+          <div style="padding:9px;background:#fef9c3;border-left:3px solid var(--amber);border-radius:0 7px 7px 0">3. Set BOTTLE_DEPTH_CM to your actual bottle height in the code</div>
+          <div style="padding:9px;background:#fee2e2;border-left:3px solid var(--red);border-radius:0 7px 7px 0">4. Close Arduino Serial Monitor — open this dashboard in Chrome/Edge</div>
+          <div style="padding:9px;background:#f0f9ff;border-left:3px solid var(--accent);border-radius:0 7px 7px 0">5. Click Connect ESP32 → select COM port → data streams live</div>
         </div>
       </div>
     </div>
+
     <div class="card">
       <div class="row">
         <div class="card-title">ESP32 Arduino Code</div>
         <button class="btn btn-ghost" style="font-size:.74rem;padding:4px 10px" onclick="copyCode()">📋 Copy</button>
       </div>
       <div class="code" id="ecode">
-<span class="cm">// AquaDrone ESP32 — TDS Sensor + Relay Pump
-// TDS AOUT → GPIO 34  (ADC, input-only pin)
-// Relay IN1 → GPIO 26 (digital output, active-LOW)</span>
+<span class="cm">// AquaDrone ESP32
+// TDS    → GPIO 34  (ADC, input-only)
+// Relay  → GPIO 26  (active-LOW)
+// TRIG   → GPIO 27
+// ECHO   → GPIO 14  (use voltage divider! 5V→3.3V)</span>
 
-<span class="kw">#define</span> TDS_PIN   <span class="nm">34</span>
-<span class="kw">#define</span> RELAY_PIN <span class="nm">26</span>
-<span class="kw">#define</span> VREF      <span class="nm">3.3</span>
-<span class="kw">#define</span> ADC_RES   <span class="nm">4096.0</span>
+<span class="kw">#define</span> TDS_PIN       <span class="nm">34</span>
+<span class="kw">#define</span> RELAY_PIN     <span class="nm">26</span>
+<span class="kw">#define</span> TRIG_PIN      <span class="nm">27</span>
+<span class="kw">#define</span> ECHO_PIN      <span class="nm">14</span>
+<span class="kw">#define</span> VREF          <span class="nm">3.3</span>
+<span class="kw">#define</span> ADC_RES       <span class="nm">4096.0</span>
+<span class="kw">#define</span> BOTTLE_DEPTH_CM <span class="nm">20.0</span>  <span class="cm">// your bottle height in cm</span>
+<span class="kw">#define</span> STOP_FILL_PCT   <span class="nm">90</span>    <span class="cm">// stop pump at 90% full</span>
+<span class="kw">#define</span> TDS_THRESHOLD   <span class="nm">100</span>   <span class="cm">// >= 100 ppm = abnormal</span>
 
-<span class="kw">float</span>         kValue   = <span class="nm">1.0</span>;  <span class="cm">// calibration factor</span>
-<span class="kw">bool</span>          pumpOn   = <span class="kw">false</span>;
-<span class="kw">bool</span>          autoMode = <span class="kw">true</span>;
-<span class="kw">int</span>           cycles   = <span class="nm">0</span>;
-<span class="kw">unsigned long</span> lastRead = <span class="nm">0</span>;
-<span class="kw">unsigned long</span> pumpStart= <span class="nm">0</span>, totalMs = <span class="nm">0</span>;
+<span class="kw">float</span>         kValue    = <span class="nm">1.0</span>;
+<span class="kw">bool</span>          pumpOn    = <span class="kw">false</span>;
+<span class="kw">bool</span>          autoMode  = <span class="kw">true</span>;
+<span class="kw">int</span>           cycles    = <span class="nm">0</span>;
+<span class="kw">unsigned long</span> lastRead  = <span class="nm">0</span>;
+<span class="kw">unsigned long</span> pumpStart = <span class="nm">0</span>, totalMs = <span class="nm">0</span>;
 
 <span class="kw">void</span> <span class="fn">setup</span>() {
   Serial.<span class="fn">begin</span>(<span class="nm">115200</span>);
   <span class="fn">analogReadResolution</span>(<span class="nm">12</span>);
   <span class="fn">pinMode</span>(RELAY_PIN, OUTPUT);
-  <span class="fn">digitalWrite</span>(RELAY_PIN, HIGH); <span class="cm">// HIGH = relay OFF</span>
+  <span class="fn">pinMode</span>(TRIG_PIN,  OUTPUT);
+  <span class="fn">pinMode</span>(ECHO_PIN,  INPUT);
+  <span class="fn">digitalWrite</span>(RELAY_PIN, HIGH); <span class="cm">// OFF at start</span>
   Serial.<span class="fn">println</span>(<span class="st">"READY"</span>);
 }
 
+<span class="cm">// ── TDS Reading ─────────────────────────────────────────</span>
 <span class="kw">float</span> <span class="fn">readTDS</span>() {
   <span class="kw">float</span> sum = <span class="nm">0</span>;
   <span class="kw">for</span>(<span class="kw">int</span> i=<span class="nm">0</span>; i&lt;<span class="nm">30</span>; i++){
@@ -341,45 +451,74 @@ select.inp{cursor:pointer;}
     <span class="nm">0</span>, <span class="nm">1500</span>);
 }
 
+<span class="cm">// ── Ultrasonic Distance ──────────────────────────────────</span>
+<span class="kw">float</span> <span class="fn">readDistance</span>() {
+  <span class="fn">digitalWrite</span>(TRIG_PIN, LOW);
+  <span class="fn">delayMicroseconds</span>(<span class="nm">2</span>);
+  <span class="fn">digitalWrite</span>(TRIG_PIN, HIGH);
+  <span class="fn">delayMicroseconds</span>(<span class="nm">10</span>);
+  <span class="fn">digitalWrite</span>(TRIG_PIN, LOW);
+  <span class="kw">long</span> dur = <span class="fn">pulseIn</span>(ECHO_PIN, HIGH, <span class="nm">30000</span>); <span class="cm">// 30ms timeout</span>
+  <span class="kw">if</span>(dur == <span class="nm">0</span>) <span class="kw">return</span> -<span class="nm">1</span>; <span class="cm">// no echo</span>
+  <span class="kw">return</span> dur * <span class="nm">0.0343</span> / <span class="nm">2.0</span>;  <span class="cm">// cm</span>
+}
+
+<span class="cm">// ── Fill % from distance ─────────────────────────────────</span>
+<span class="kw">int</span> <span class="fn">getFillPct</span>(<span class="kw">float</span> distCm) {
+  <span class="kw">if</span>(distCm &lt; <span class="nm">0</span>) <span class="kw">return</span> -<span class="nm">1</span>;
+  <span class="cm">// sensor at top: small distance = nearly full</span>
+  <span class="kw">float</span> filled = BOTTLE_DEPTH_CM - distCm;
+  <span class="kw">int</span> pct = (<span class="kw">int</span>)((filled / BOTTLE_DEPTH_CM) * <span class="nm">100.0</span>);
+  <span class="kw">return</span> <span class="fn">constrain</span>(pct, <span class="nm">0</span>, <span class="nm">100</span>);
+}
+
+<span class="cm">// ── Pump Control ─────────────────────────────────────────</span>
 <span class="kw">void</span> <span class="fn">setPump</span>(<span class="kw">bool</span> on) {
   <span class="kw">if</span>(on == pumpOn) <span class="kw">return</span>;
   pumpOn = on;
   <span class="fn">digitalWrite</span>(RELAY_PIN, on ? LOW : HIGH);
   <span class="kw">if</span>(on){ pumpStart = <span class="fn">millis</span>(); cycles++; }
-  <span class="kw">else</span>  { totalMs  += <span class="fn">millis</span>() - pumpStart; }
+  <span class="kw">else</span>  { totalMs += <span class="fn">millis</span>() - pumpStart; }
   Serial.<span class="fn">println</span>(on ? <span class="st">"PUMP:ON"</span> : <span class="st">"PUMP:OFF"</span>);
 }
 
+<span class="cm">// ── Main Loop ────────────────────────────────────────────</span>
 <span class="kw">void</span> <span class="fn">loop</span>() {
+
   <span class="kw">if</span>(<span class="fn">millis</span>() - lastRead >= <span class="nm">1500</span>) {
     lastRead = <span class="fn">millis</span>();
-    <span class="kw">float</span> tds = <span class="fn">readTDS</span>();
+
+    <span class="kw">float</span> tds     = <span class="fn">readTDS</span>();
+    <span class="kw">float</span> distCm  = <span class="fn">readDistance</span>();
+    <span class="kw">int</span>   fillPct = <span class="fn">getFillPct</span>(distCm);
     <span class="kw">unsigned long</span> runMs = pumpOn ?
       totalMs + (<span class="fn">millis</span>()-pumpStart) : totalMs;
 
-    <span class="cm">// CSV line dashboard parses:</span>
-    <span class="cm">// TDS:342.5,PUMP:OFF,CYC:2,RUN:45000,UP:90000</span>
-    Serial.<span class="fn">print</span>(<span class="st">"TDS:"</span>);  Serial.<span class="fn">print</span>(tds, <span class="nm">1</span>);
+    <span class="cm">// Serial output parsed by dashboard:</span>
+    <span class="cm">// TDS:85.2,PUMP:ON,CYC:1,RUN:5000,UP:12000,DIST:8.4,FILL:58</span>
+    Serial.<span class="fn">print</span>(<span class="st">"TDS:"</span>);   Serial.<span class="fn">print</span>(tds,<span class="nm">1</span>);
     Serial.<span class="fn">print</span>(<span class="st">",PUMP:"</span>); Serial.<span class="fn">print</span>(pumpOn?<span class="st">"ON"</span>:<span class="st">"OFF"</span>);
     Serial.<span class="fn">print</span>(<span class="st">",CYC:"</span>);  Serial.<span class="fn">print</span>(cycles);
     Serial.<span class="fn">print</span>(<span class="st">",RUN:"</span>);  Serial.<span class="fn">print</span>(runMs);
-    Serial.<span class="fn">print</span>(<span class="st">",UP:"</span>);   Serial.<span class="fn">println</span>(<span class="fn">millis</span>());
+    Serial.<span class="fn">print</span>(<span class="st">",UP:"</span>);   Serial.<span class="fn">print</span>(<span class="fn">millis</span>());
+    Serial.<span class="fn">print</span>(<span class="st">",DIST:"</span>); Serial.<span class="fn">print</span>(distCm,<span class="nm">1</span>);
+    Serial.<span class="fn">print</span>(<span class="st">",FILL:"</span>); Serial.<span class="fn">println</span>(fillPct);
 
-    <span class="kw">if</span>(autoMode) {
-      <span class="kw">if</span>(!pumpOn && tds > <span class="nm">500</span>) <span class="fn">setPump</span>(<span class="kw">true</span>);
-      <span class="kw">if</span>( pumpOn && tds < <span class="nm">200</span>) <span class="fn">setPump</span>(<span class="kw">false</span>);
+    <span class="cm">// Auto-stop pump when bottle reaches 90% full</span>
+    <span class="kw">if</span>(pumpOn && fillPct >= STOP_FILL_PCT) {
+      <span class="fn">setPump</span>(<span class="kw">false</span>);
+      Serial.<span class="fn">println</span>(<span class="st">"BOTTLE_FULL"</span>);
     }
   }
 
-  <span class="cm">// Commands sent from dashboard via serial:</span>
-  <span class="cm">// ON / OFF / AUTO / MANUAL / K=1.2</span>
+  <span class="cm">// Commands from dashboard: ON / OFF / AUTO / MANUAL / K=x</span>
   <span class="kw">if</span>(Serial.<span class="fn">available</span>()) {
     String c = Serial.<span class="fn">readStringUntil</span>(<span class="st">'\n'</span>);
     c.<span class="fn">trim</span>(); c.<span class="fn">toUpperCase</span>();
-    <span class="kw">if</span>     (c == <span class="st">"ON"</span>)    { autoMode=<span class="kw">false</span>; <span class="fn">setPump</span>(<span class="kw">true</span>); }
-    <span class="kw">else if</span>(c == <span class="st">"OFF"</span>)   { autoMode=<span class="kw">false</span>; <span class="fn">setPump</span>(<span class="kw">false</span>); }
-    <span class="kw">else if</span>(c == <span class="st">"AUTO"</span>)  autoMode = <span class="kw">true</span>;
-    <span class="kw">else if</span>(c == <span class="st">"MANUAL"</span>) autoMode = <span class="kw">false</span>;
+    <span class="kw">if</span>     (c==<span class="st">"ON"</span>)    { autoMode=<span class="kw">false</span>; <span class="fn">setPump</span>(<span class="kw">true</span>); }
+    <span class="kw">else if</span>(c==<span class="st">"OFF"</span>)   { autoMode=<span class="kw">false</span>; <span class="fn">setPump</span>(<span class="kw">false</span>); }
+    <span class="kw">else if</span>(c==<span class="st">"AUTO"</span>)  autoMode=<span class="kw">true</span>;
+    <span class="kw">else if</span>(c==<span class="st">"MANUAL"</span>) autoMode=<span class="kw">false</span>;
     <span class="kw">else if</span>(c.<span class="fn">startsWith</span>(<span class="st">"K="</span>))
       kValue = c.<span class="fn">substring</span>(<span class="nm">2</span>).<span class="fn">toFloat</span>();
   }
@@ -389,7 +528,9 @@ select.inp{cursor:pointer;}
   </div>
 </div>
 
-<!-- AI REPORT -->
+<!-- ═══════════════════════════════════════════════════════
+     AI REPORT
+════════════════════════════════════════════════════════ -->
 <div class="page" id="page-ai">
   <div class="grid2">
     <div>
@@ -400,17 +541,19 @@ select.inp{cursor:pointer;}
           <option>Full Water Quality Assessment</option>
           <option>Contamination Risk Analysis</option>
           <option>TDS Trend Analysis</option>
-          <option>Pump Efficiency Report</option>
+          <option>Pump &amp; Bottle Fill Efficiency Report</option>
         </select>
         <label>Notes / context</label>
-        <textarea class="inp" id="rnotes" rows="3" placeholder="Location, conditions, observations..." style="resize:vertical;margin-bottom:10px"></textarea>
+        <textarea class="inp" id="rnotes" rows="3" placeholder="Location, water source, conditions..." style="resize:vertical;margin-bottom:10px"></textarea>
         <button class="btn btn-blue" style="width:100%" onclick="genReport()">⚡ Generate</button>
       </div>
       <div class="card" style="margin-top:16px">
         <div class="card-title">Live Snapshot</div>
         <div style="display:grid;gap:6px;font-size:.83rem">
           <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)"><span style="color:var(--muted)">TDS</span><span id="r-tds">—</span></div>
-          <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)"><span style="color:var(--muted)">WHO limit</span><span>500 ppm</span></div>
+          <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)"><span style="color:var(--muted)">Water status</span><span id="r-wstatus">—</span></div>
+          <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)"><span style="color:var(--muted)">Threshold</span><span>100 ppm</span></div>
+          <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)"><span style="color:var(--muted)">Bottle fill</span><span id="r-fill">—</span></div>
           <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)"><span style="color:var(--muted)">Pump</span><span id="r-pump">—</span></div>
           <div style="display:flex;justify-content:space-between;padding:6px 0"><span style="color:var(--muted)">Cycles</span><span id="r-cyc">—</span></div>
         </div>
@@ -423,60 +566,98 @@ select.inp{cursor:pointer;}
       </div>
       <div class="ai-box">
         <div style="font-size:.8rem;color:#0369a1;font-weight:500">🤖 AI Water Quality Analyst</div>
-        <div style="font-size:.75rem;color:#0369a1;margin-top:2px">Analyzes real ESP32 TDS data vs WHO &amp; EPA</div>
+        <div style="font-size:.75rem;color:#0369a1;margin-top:2px">Threshold: TDS ≥ 100 ppm = Abnormal</div>
       </div>
-      <div class="ai-out" id="ai-out">Click Generate to analyze your real-time TDS sensor reading.</div>
+      <div class="ai-out" id="ai-out">Click Generate to analyze your real-time TDS and bottle fill data.</div>
     </div>
   </div>
 </div>
 
+<!-- ═══════════════════════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════════════════════════ -->
 <script>
 // ── STATE ─────────────────────────────────────────────────
 let port=null, reader=null, running=false;
 let tdsVal=null, pumpState='—', cycles=0, runMs=0, uptimeMs=0;
+let distCm=null, fillPct=null;
+const BOTTLE_DEPTH = 20; // cm — matches ESP32 default
 const hist=[], MAX=40, lastReport={v:''};
 
 // ── CHARTS ────────────────────────────────────────────────
-function mkChart(id, color) {
-  return new Chart(document.getElementById(id).getContext('2d'),{
-    type:'line',
-    data:{labels:[],datasets:[
-      {data:[],borderColor:color,backgroundColor:color+'18',tension:.4,pointRadius:0,fill:true,borderWidth:2},
-      {data:[],borderColor:'#f59e0b',borderDash:[4,3],borderWidth:1.5,pointRadius:0,fill:false}
-    ]},
-    options:{responsive:true,maintainAspectRatio:false,animation:false,
-      scales:{x:{display:false},y:{min:0,max:1000,grid:{color:'#f1f5f9'},ticks:{font:{family:'DM Mono',size:10},callback:v=>v}}},
-      plugins:{legend:{display:false}}}
-  });
-}
-const cMain = mkChart('chartMain','#0ea5e9');
-const cPump = mkChart('chartPump','#10b981');
+const tdsCtx = document.getElementById('chartTDS').getContext('2d');
+const chartTDS = new Chart(tdsCtx, {
+  type:'line',
+  data:{labels:[], datasets:[
+    {data:[], borderColor:'#0ea5e9', backgroundColor:'rgba(14,165,233,.08)', tension:.4, pointRadius:0, fill:true, borderWidth:2, label:'TDS'},
+    {data:[], borderColor:'#ef4444', borderDash:[4,3], borderWidth:1.5, pointRadius:0, fill:false, label:'100ppm limit'}
+  ]},
+  options:{responsive:true, maintainAspectRatio:false, animation:false,
+    scales:{x:{display:false}, y:{min:0, max:300,
+      grid:{color:'#f1f5f9'},
+      ticks:{font:{family:'DM Mono',size:10}, callback:v=>v+' ppm'}}},
+    plugins:{legend:{display:false}}}
+});
 
 function pushChart(v) {
   hist.push(v); if(hist.length>MAX) hist.shift();
-  const lim=Array(hist.length).fill(500), lb=Array(hist.length).fill('');
-  [cMain,cPump].forEach(c=>{
-    c.data.labels=lb;
-    c.data.datasets[0].data=[...hist];
-    c.data.datasets[1].data=lim;
-    c.update('none');
-  });
+  chartTDS.data.labels = Array(hist.length).fill('');
+  chartTDS.data.datasets[0].data = [...hist];
+  chartTDS.data.datasets[1].data = Array(hist.length).fill(100);
+  // auto-scale Y max
+  const yMax = Math.max(300, Math.ceil(Math.max(...hist) * 1.2 / 50) * 50);
+  chartTDS.options.scales.y.max = yMax;
+  chartTDS.update('none');
 }
 
-// ── WEB SERIAL ────────────────────────────────────────────
+// ── BOTTLE FILL UI ────────────────────────────────────────
+function updateBottleUI(pct) {
+  if(pct === null || pct < 0) return;
+  // SVG fill rect: body from y=22 to y=102 (height=80)
+  const fillH = Math.round((pct / 100) * 80);
+  const fillY = 102 - fillH;
+  document.getElementById('bottleFillRect').setAttribute('y', fillY);
+  document.getElementById('bottleFillRect').setAttribute('height', fillH);
+
+  // color by level
+  const color = pct >= 90 ? '#ef4444' : pct >= 70 ? '#f59e0b' : '#0ea5e9';
+  document.getElementById('bottleFillRect').setAttribute('fill', color);
+
+  // progress bars
+  const barColor = pct >= 90 ? '#ef4444' : pct >= 70 ? '#f59e0b' : '#10b981';
+  ['fill-bar','fill-bar2'].forEach(id=>{
+    const el = document.getElementById(id);
+    el.style.width = pct+'%';
+    el.style.background = barColor;
+  });
+
+  document.getElementById('fill-pct').textContent = pct+'%';
+  document.getElementById('dfill-pct').textContent = pct+'%';
+
+  const fb = document.getElementById('b-fill');
+  if(pct >= 90){ fb.textContent='● Full — pump stopped'; fb.className='badge b-bad'; }
+  else if(pct >= 70){ fb.textContent='● Almost full'; fb.className='badge b-warn'; }
+  else if(pct > 0){ fb.textContent='● Filling'; fb.className='badge b-good'; }
+  else{ fb.textContent='● Empty'; fb.className='badge b-info'; }
+
+  // bottle full alert
+  document.getElementById('bottle-alert').classList.toggle('hidden', pct < 90);
+}
+
+// ── SERIAL ────────────────────────────────────────────────
 async function toggleSerial() {
   if(running){ disconnectSerial(); return; }
   if(!('serial' in navigator)){
-    alert('Web Serial API not available.\n\nUse Google Chrome or Microsoft Edge.\nMake sure you open this file directly in Chrome (not via file:// if blocked — just drag the .html file into Chrome).');
+    alert('Web Serial not supported.\nUse Google Chrome or Microsoft Edge.\nMake sure Arduino Serial Monitor is closed.');
     return;
   }
   try {
     port = await navigator.serial.requestPort();
     await port.open({baudRate:115200});
-    running=true;
+    running = true;
     setConnUI(true);
     document.getElementById('banner').classList.add('hidden');
-    addLog('Connected — reading ESP32 serial data');
+    addLog('Connected — reading ESP32 data');
     readLoop();
   } catch(e){ addLog('Failed: '+e.message); }
 }
@@ -488,73 +669,107 @@ async function disconnectSerial() {
 }
 
 async function readLoop() {
-  const dec=new TextDecoderStream();
+  const dec = new TextDecoderStream();
   port.readable.pipeTo(dec.writable);
-  reader=dec.readable.getReader();
+  reader = dec.readable.getReader();
   let buf='';
   try {
     while(running){
-      const {value,done}=await reader.read();
+      const {value,done} = await reader.read();
       if(done) break;
-      buf+=value;
-      const lines=buf.split('\n'); buf=lines.pop();
+      buf += value;
+      const lines = buf.split('\n'); buf = lines.pop();
       lines.forEach(parseLine);
     }
   } catch(e){ if(running) addLog('Read error: '+e.message); }
   running=false; setConnUI(false);
 }
 
-// Parses: TDS:342.5,PUMP:OFF,CYC:2,RUN:45000,UP:90000
+// Parses: TDS:85.2,PUMP:ON,CYC:1,RUN:5000,UP:12000,DIST:8.4,FILL:58
 function parseLine(line) {
-  line=line.trim(); if(!line) return;
-  const get=k=>{const m=line.match(new RegExp(k+':([^,\\r\\n]+)'));return m?m[1].trim():null;};
-  const t=get('TDS'), p=get('PUMP'), c=get('CYC'), r=get('RUN'), u=get('UP');
-  if(t!==null){ tdsVal=parseFloat(t); pushChart(tdsVal); }
-  if(p!==null) pumpState=p;
-  if(c!==null) cycles=parseInt(c);
-  if(r!==null) runMs=parseInt(r);
-  if(u!==null) uptimeMs=parseInt(u);
-  if(t) updateAll();
+  line = line.trim(); if(!line) return;
+  const get = k => { const m=line.match(new RegExp(k+':([^,\\r\\n]+)')); return m?m[1].trim():null; };
+
+  const t  = get('TDS'),  p = get('PUMP'), c = get('CYC');
+  const r  = get('RUN'),  u = get('UP');
+  const dc = get('DIST'), f = get('FILL');
+
+  if(t  !== null) { tdsVal  = parseFloat(t);  pushChart(tdsVal); }
+  if(p  !== null)   pumpState = p;
+  if(c  !== null)   cycles    = parseInt(c);
+  if(r  !== null)   runMs     = parseInt(r);
+  if(u  !== null)   uptimeMs  = parseInt(u);
+  if(dc !== null)   distCm    = parseFloat(dc);
+  if(f  !== null)   fillPct   = parseInt(f);
+
+  if(line === 'BOTTLE_FULL') {
+    addLog('🚨 BOTTLE FULL — pump auto-stopped');
+    pumpState = 'OFF';
+  }
   if(line.startsWith('PUMP:')) addLog(line);
+
+  if(t) updateAll();
 }
 
-// ── UPDATE UI ─────────────────────────────────────────────
+// ── UPDATE ALL UI ─────────────────────────────────────────
 function updateAll() {
-  if(tdsVal===null) return;
-  const v=tdsVal.toFixed(1);
-  const rs=Math.round(runMs/1000)+' s';
-  const uh=String(Math.floor(uptimeMs/3600000)).padStart(2,'0');
-  const um=String(Math.floor((uptimeMs%3600000)/60000)).padStart(2,'0');
-  const up=uh+':'+um;
+  if(tdsVal === null) return;
+  const v   = tdsVal.toFixed(1);
+  const rs  = Math.round(runMs/1000)+' s';
+  const uh  = String(Math.floor(uptimeMs/3600000)).padStart(2,'0');
+  const um  = String(Math.floor((uptimeMs%3600000)/60000)).padStart(2,'0');
+  const up  = uh+':'+um;
+  const isNormal = tdsVal < 100;
+  const wLabel   = isNormal ? 'Normal' : 'Abnormal';
+  const fillStr  = fillPct !== null && fillPct >= 0 ? fillPct+'%' : '—';
+  const distStr  = distCm  !== null && distCm  >= 0 ? distCm.toFixed(1)+' cm' : '—';
 
-  // dashboard
-  set('v-tds',v); set('v-pump',pumpState); set('v-up',up);
-  const b=document.getElementById('b-tds');
-  if     (tdsVal<300){b.textContent='● Excellent';b.className='badge b-good';}
-  else if(tdsVal<500){b.textContent='● Acceptable';b.className='badge b-good';}
-  else if(tdsVal<900){b.textContent='● Elevated';b.className='badge b-warn';}
-  else               {b.textContent='● Alert';b.className='badge b-bad';}
-  const bp=document.getElementById('b-pump');
-  bp.textContent=pumpState==='ON'?'● Sampling':'● Idle';
-  bp.className  =pumpState==='ON'?'badge b-good':'badge b-info';
+  // ── Dashboard ──
+  set('v-tds', v); set('v-up', up); set('v-cyc', cycles);
+  set('v-pump', pumpState); set('v-tdsraw', v+' ppm');
+  set('v-dist', distStr);
 
-  // pump page
-  set('p-status','● '+pumpState); set('p-cycles',cycles); set('p-run',rs);
-  set('p-tds',v+' ppm'); set('p-relay',pumpState==='ON'?'CLOSED':'OPEN');
-  set('p-run2',rs); set('p-up',up);
+  // TDS badge
+  const bt = document.getElementById('b-tds');
+  if(isNormal){ bt.textContent='● Normal'; bt.className='badge b-good'; }
+  else        { bt.textContent='● Abnormal'; bt.className='badge b-bad'; }
 
-  // drone
-  set('d-tds',v+' ppm'); set('d-pump',pumpState);
+  // Water status card
+  set('v-wstatus', wLabel);
+  const bw = document.getElementById('b-wstatus');
+  if(isNormal){ bw.textContent='● Clean water'; bw.className='badge b-good'; }
+  else        { bw.textContent='● Contaminated'; bw.className='badge b-bad'; }
 
-  // report
-  set('r-tds',v+' ppm'); set('r-pump',pumpState); set('r-cyc',cycles);
+  // Pump badge
+  const bp = document.getElementById('b-pump');
+  bp.textContent = pumpState==='ON' ? '● Sampling' : '● Idle';
+  bp.className   = pumpState==='ON' ? 'badge b-good' : 'badge b-info';
+
+  // Bottle
+  updateBottleUI(fillPct);
+  set('v-fill', fillPct !== null && fillPct >= 0 ? fillPct : '—');
+
+  // ── Drone tab ──
+  set('dp-status', '● '+pumpState);
+  set('dp-cycles', cycles); set('dp-run', rs);
+  set('d-tds',  v+' ppm'); set('d-dist', distStr);
+  set('d-wq', wLabel);
+  document.getElementById('d-wq').style.color = isNormal ? '#16a34a' : '#dc2626';
+
+  // ── Report tab ──
+  set('r-tds',     v+' ppm');
+  set('r-wstatus', wLabel);
+  set('r-fill',    fillStr);
+  set('r-pump',    pumpState);
+  set('r-cyc',     cycles);
 }
-const set=(id,v)=>{ const e=document.getElementById(id); if(e) e.textContent=v; };
+
+const set = (id,v) => { const e=document.getElementById(id); if(e) e.textContent=v; };
 
 // ── PUMP COMMAND ──────────────────────────────────────────
 async function cmdPump(action) {
   if(!port||!running){ addLog('⚠ Not connected to ESP32'); return; }
-  const w=port.writable.getWriter();
+  const w = port.writable.getWriter();
   await w.write(new TextEncoder().encode(action+'\n'));
   w.releaseLock();
   addLog('→ Sent: '+action);
@@ -562,19 +777,19 @@ async function cmdPump(action) {
 
 // ── LOG ───────────────────────────────────────────────────
 function addLog(msg) {
-  const box=document.getElementById('log');
-  const d=document.createElement('div'); d.className='log-line';
-  d.textContent=new Date().toTimeString().slice(0,8)+' — '+msg;
-  box.appendChild(d); box.scrollTop=box.scrollHeight;
+  const box = document.getElementById('log');
+  const d = document.createElement('div'); d.className='log-line';
+  d.textContent = new Date().toTimeString().slice(0,8)+' — '+msg;
+  box.appendChild(d); box.scrollTop = box.scrollHeight;
 }
 
 // ── CONN UI ───────────────────────────────────────────────
 function setConnUI(on) {
-  document.getElementById('dot').className='dot'+(on?' live':' err');
-  document.getElementById('conn-lbl').textContent=on?'Live · ESP32':'Not connected';
-  const b=document.getElementById('conn-btn');
-  b.textContent=on?'Disconnect':'Connect ESP32';
-  b.className='conn-btn'+(on?' connected':'');
+  document.getElementById('dot').className = 'dot'+(on?' live':' err');
+  document.getElementById('conn-lbl').textContent = on?'Live · ESP32':'Not connected';
+  const b = document.getElementById('conn-btn');
+  b.textContent = on?'Disconnect':'Connect ESP32';
+  b.className   = 'conn-btn'+(on?' connected':'');
 }
 
 // ── PAGE NAV ──────────────────────────────────────────────
@@ -590,64 +805,145 @@ function go(id,el) {
 let map, tMarker;
 function initMap() {
   if(mapInit)return; mapInit=true;
-  map=L.map('map').setView([13.0827,80.2707],10);
+  map = L.map('map').setView([13.0827,80.2707],10);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'OSM'}).addTo(map);
   L.marker([13.0827,80.2707],{icon:L.divIcon({html:'<div style="font-size:20px">🚁</div>',iconSize:[28,28],className:''})}).addTo(map).bindPopup('Base');
   map.on('click',e=>{
-    document.getElementById('lat').value=e.latlng.lat.toFixed(5);
-    document.getElementById('lon').value=e.latlng.lng.toFixed(5);
-    if(tMarker)map.removeLayer(tMarker);
-    tMarker=L.marker([e.latlng.lat,e.latlng.lng]).addTo(map).bindPopup('Target').openPopup();
+    document.getElementById('lat').value = e.latlng.lat.toFixed(5);
+    document.getElementById('lon').value = e.latlng.lng.toFixed(5);
+    if(tMarker) map.removeLayer(tMarker);
+    tMarker = L.marker([e.latlng.lat,e.latlng.lng]).addTo(map).bindPopup('Target').openPopup();
   });
 }
 function flyTo(){
-  const la=parseFloat(document.getElementById('lat').value),lo=parseFloat(document.getElementById('lon').value);
+  const la=parseFloat(document.getElementById('lat').value);
+  const lo=parseFloat(document.getElementById('lon').value);
   if(!mapInit)initMap(); setTimeout(()=>map.flyTo([la,lo],12),100);
 }
 
 let launched=false;
 function launch(){
-  if(!mapInit){go('drone',document.querySelectorAll('.tab')[2]);initMap();return;}
+  if(!mapInit){go('drone',document.querySelectorAll('.tab')[1]);initMap();return;}
   launched=true;
   setTag('In Flight','#dbeafe','#1d4ed8');
-  document.getElementById('s-log').textContent='🚀 Launched → target set';
-  let a=0;const t=setInterval(()=>{
-    a+=5; document.getElementById('d-alt').textContent=a+' m'; set('v-alt',a);
-    if(a>=50){clearInterval(t);document.getElementById('s-log').textContent='✅ Hovering at 50m. Ready to sample.';}
+  document.getElementById('s-log').textContent='🚀 Launched to target location';
+  let a=0; const t=setInterval(()=>{
+    a+=5;
+    document.getElementById('d-alt').textContent=a+' m'; set('v-alt',a);
+    if(a>=50){clearInterval(t);document.getElementById('s-log').textContent='✅ Hovering at 50m — release tube to sample.';}
   },400);
 }
-function releaseTube(){ if(!launched){document.getElementById('s-log').textContent='⚠ Launch first.';return;} document.getElementById('s-log').textContent='💧 Tube released.'; setTag('Tube Out','#dcfce7','#16a34a'); }
-function startPump(){ if(!launched){document.getElementById('s-log').textContent='⚠ Launch first.';return;} cmdPump('ON'); document.getElementById('s-log').textContent='⬇ Pumping — TDS live...'; setTag('Sampling','#dcfce7','#16a34a'); }
-function stopAll(){ cmdPump('OFF'); setTag('Idle','',''); document.getElementById('s-log').textContent='■ Stopped.'; }
-function returnHome(){ launched=false; cmdPump('OFF'); document.getElementById('s-log').textContent='⏎ Returning...'; set('v-alt',0); document.getElementById('d-alt').textContent='0 m'; setTag('Returning','#fef9c3','#92400e'); }
-function setTag(txt,bg,col){ const t=document.getElementById('s-tag'); t.textContent=txt; t.style.background=bg; t.style.color=col; }
+function releaseTube(){
+  if(!launched){document.getElementById('s-log').textContent='⚠ Launch drone first.';return;}
+  document.getElementById('s-log').textContent='💧 Tube released. Lower to water surface.';
+  setTag('Tube Out','#dcfce7','#16a34a');
+}
+function startPump(){
+  if(!launched){document.getElementById('s-log').textContent='⚠ Launch drone first.';return;}
+  cmdPump('ON');
+  document.getElementById('s-log').textContent='⬇ Pump ON — collecting water into bottle...';
+  setTag('Sampling','#dcfce7','#16a34a');
+}
+function stopAll(){
+  cmdPump('OFF');
+  setTag('Idle','','');
+  document.getElementById('s-log').textContent='■ Stopped.';
+}
+function returnHome(){
+  launched=false; cmdPump('OFF');
+  document.getElementById('s-log').textContent='⏎ Returning to base...';
+  set('v-alt',0); document.getElementById('d-alt').textContent='0 m';
+  setTag('Returning','#fef9c3','#92400e');
+}
+function setTag(txt,bg,col){
+  const t=document.getElementById('s-tag');
+  t.textContent=txt; t.style.background=bg; t.style.color=col;
+}
 
 // ── AI REPORT ─────────────────────────────────────────────
 async function genReport(){
-  const type=document.getElementById('rtype').value;
-  const notes=document.getElementById('rnotes').value;
-  const snap={tds:tdsVal?tdsVal.toFixed(1):'N/A', pump:pumpState, cycles};
-  const out=document.getElementById('ai-out');
-  out.innerHTML='<span class="spinner"></span>Analyzing...';
-  const prompt=`You are a water quality expert AI. Generate a professional ${type} for an ESP32 drone-based water sampling system.\n\nSensor: TDS only (GPIO 34 ADC)\nTDS: ${snap.tds} ppm\nPump: ${snap.pump}\nCycles: ${snap.cycles}\nWHO/EPA limit: 500 ppm\n${notes?'Context: '+notes:''}\n\nProvide:\n1. EXECUTIVE SUMMARY (2-3 sentences)\n2. TDS ANALYSIS (vs WHO/EPA)\n3. RISK ASSESSMENT (Low/Medium/High)\n4. RECOMMENDATIONS (3-4 steps)\n5. WATER QUALITY INDEX (/100)\n\nPlain text only.`;
-  try{
-    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:900,messages:[{role:'user',content:prompt}]})});
-    const d=await res.json();
-    lastReport.v=d.content?.map(b=>b.text||'').join('')||'No response.';
-  }catch(e){
-    const t=parseFloat(snap.tds)||0;
-    lastReport.v=`EXECUTIVE SUMMARY\nTDS reading of ${t.toFixed(0)} ppm ${t<500?'is within WHO/EPA safe limit of 500 ppm.':'EXCEEDS WHO/EPA limit of 500 ppm — treatment required.'}\n\nTDS ANALYSIS\n• Value: ${t.toFixed(0)} ppm — ${t<50?'Pure/distilled':t<300?'Excellent quality':t<500?'Acceptable (tap water range)':t<900?'Elevated — contaminants likely':'Severely elevated — unsafe'}\n• WHO/EPA limit: 500 ppm\n\nRISK ASSESSMENT: ${t<300?'LOW':t<500?'LOW-MEDIUM':t<900?'MEDIUM-HIGH':'HIGH'}\n${t<500?'No immediate health risk.':'Avoid direct use — test for specific contaminants.'}\n\nRECOMMENDATIONS\n1. ${t>500?'Stop consumption and seek alternate source.':'Continue monitoring at regular intervals.'}\n2. Flush tube 30s before recording reading.\n3. Calibrate K-value monthly with 442 ppm reference.\n4. Sample at multiple depths for complete profile.\n\nWATER QUALITY INDEX: ${t<50?98:t<300?88:t<500?74:t<900?44:18} / 100`;
+  const type  = document.getElementById('rtype').value;
+  const notes = document.getElementById('rnotes').value;
+  const snap  = {
+    tds:     tdsVal ? tdsVal.toFixed(1) : 'N/A',
+    status:  tdsVal !== null ? (tdsVal < 100 ? 'Normal' : 'Abnormal') : '—',
+    fill:    fillPct !== null ? fillPct+'%' : '—',
+    dist:    distCm  !== null ? distCm.toFixed(1)+' cm' : '—',
+    pump:    pumpState, cycles
+  };
+  const out = document.getElementById('ai-out');
+  out.innerHTML = '<span class="spinner"></span>Analyzing...';
+  const prompt = `You are a water quality expert AI. Generate a professional ${type} for a drone-based water sampling system with ESP32.
+
+Sensors: TDS (GPIO 34), Relay pump (GPIO 26), HC-SR04 ultrasonic bottle-fill sensor
+TDS reading   : ${snap.tds} ppm
+Water status  : ${snap.status} (threshold: ≥100 ppm = abnormal)
+Bottle fill   : ${snap.fill}
+Ultrasonic dist: ${snap.dist}
+Pump state    : ${snap.pump}
+Pump cycles   : ${snap.cycles}
+${notes ? 'Context: '+notes : ''}
+
+Rules:
+- TDS < 100 ppm = NORMAL / clean water
+- TDS ≥ 100 ppm = ABNORMAL / contaminated
+
+Provide:
+1. EXECUTIVE SUMMARY (2-3 sentences)
+2. TDS ANALYSIS (vs 100 ppm threshold)
+3. BOTTLE COLLECTION STATUS
+4. RISK ASSESSMENT (Low/Medium/High)
+5. RECOMMENDATIONS (3-4 steps)
+6. WATER QUALITY INDEX (/100)
+
+Plain text only, no markdown.`;
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:900,messages:[{role:'user',content:prompt}]})
+    });
+    const d = await res.json();
+    lastReport.v = d.content?.map(b=>b.text||'').join('') || 'No response.';
+  } catch(e) {
+    const t = parseFloat(snap.tds) || 0;
+    const normal = t < 100;
+    lastReport.v =
+`EXECUTIVE SUMMARY
+TDS reading of ${t.toFixed(0)} ppm is ${normal ? 'NORMAL — below the 100 ppm threshold. Water quality is clean and safe for collection.' : 'ABNORMAL — exceeds the 100 ppm threshold. Water is contaminated and not suitable for use without treatment.'}
+Bottle is currently ${snap.fill} full.
+
+TDS ANALYSIS
+• TDS: ${t.toFixed(0)} ppm — ${t<50?'Excellent (pure/distilled range)':t<100?'Normal (clean water)':t<300?'Abnormal — elevated dissolved solids':'Abnormal — severely contaminated'}
+• Threshold: 100 ppm (project-specific)
+• Status: ${normal ? 'NORMAL ✓' : 'ABNORMAL ✗'}
+
+BOTTLE COLLECTION STATUS
+• Fill level: ${snap.fill}
+• Ultrasonic distance: ${snap.dist}
+• Pump auto-stops at 90% fill to prevent overflow.
+• ${snap.fill !== '—' && parseInt(snap.fill)>=90 ? 'Bottle is full — replace before next sampling.' : 'Bottle has capacity for continued collection.'}
+
+RISK ASSESSMENT: ${t<50?'LOW':t<100?'LOW':t<200?'MEDIUM':'HIGH'}
+${normal ? 'No contamination risk detected. Water within safe TDS range.' : 'Contamination detected. Do not use water without filtration/treatment.'}
+
+RECOMMENDATIONS
+1. ${!normal ? 'Do not use collected water — high TDS indicates contamination.' : 'Water is safe — proceed with normal collection protocol.'}
+2. Flush the tube for 30 seconds before recording to clear residue.
+3. Recalibrate TDS K-value monthly with a 442 ppm reference solution.
+4. Replace bottle when full alert triggers — pump resumes automatically.
+
+WATER QUALITY INDEX: ${t<50?97:t<100?82:t<200?55:t<500?35:15} / 100 — ${normal?'GOOD':'POOR'}`;
   }
-  out.textContent=lastReport.v;
-  document.getElementById('dl-btn').style.display='';
+  out.textContent = lastReport.v;
+  document.getElementById('dl-btn').style.display = '';
 }
 
 function dlReport(){
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(new Blob([`AquaDrone Report\n${new Date().toLocaleString()}\n\n${lastReport.v}`],{type:'text/plain'}));
-  a.download=`AquaDrone_${new Date().toISOString().slice(0,10)}.txt`; a.click();
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([`AquaDrone Report\n${new Date().toLocaleString()}\n\n${lastReport.v}`],{type:'text/plain'}));
+  a.download = `AquaDrone_${new Date().toISOString().slice(0,10)}.txt`;
+  a.click();
 }
-
 function copyCode(){
   navigator.clipboard.writeText(document.getElementById('ecode').innerText)
     .then(()=>{ event.target.textContent='✓ Copied!'; setTimeout(()=>event.target.textContent='📋 Copy',2000); });
