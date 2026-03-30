@@ -1,952 +1,1086 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AquaDrone Monitor</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Rocket Telemetry</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<!-- Firebase v9 compat (CDN) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <style>
-:root{--bg:#f4f7fa;--surface:#fff;--border:#e2e8f0;--text:#1a2332;--muted:#64748b;--accent:#0ea5e9;--green:#10b981;--amber:#f59e0b;--red:#ef4444;--radius:12px;--shadow:0 2px 12px rgba(0,0,0,.07);}
-*{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);}
-nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:58px;position:sticky;top:0;z-index:99;}
-.logo{font-weight:600;font-size:1rem;display:flex;align-items:center;gap:8px;}
-.logo i{width:26px;height:26px;background:linear-gradient(135deg,#0ea5e9,#06b6d4);border-radius:7px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:.75rem;font-style:normal;}
-.tabs{display:flex;gap:3px;}
-.tab{padding:6px 13px;border-radius:8px;font-size:.82rem;font-weight:500;cursor:pointer;border:none;background:transparent;color:var(--muted);transition:.15s;}
-.tab.on{background:var(--accent);color:#fff;}
-.tab:hover:not(.on){background:var(--bg);}
-.conn-area{display:flex;align-items:center;gap:8px;}
-.dot{width:8px;height:8px;border-radius:50%;background:#d1d5db;transition:.3s;}
-.dot.live{background:var(--green);animation:blink 1.4s infinite;}
-.dot.err{background:var(--red);}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
-.conn-btn{padding:5px 13px;border-radius:7px;border:1px solid var(--border);background:var(--surface);font-family:inherit;font-size:.8rem;font-weight:500;cursor:pointer;transition:.15s;}
-.conn-btn:hover{background:var(--bg);}
-.conn-btn.connected{border-color:#86efac;background:#f0fdf4;color:#16a34a;}
-.banner{background:#f0f9ff;border-bottom:1px solid #bae6fd;padding:9px 24px;font-size:.8rem;color:#0369a1;}
-.banner.hidden{display:none;}
-.page{display:none;padding:22px 24px;}
-.page.on{display:block;}
-.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px;}
-.grid5{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:18px;}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
-.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);}
-.card-title{font-size:.92rem;font-weight:600;margin-bottom:14px;}
-.stat-card{border-top:3px solid var(--border);}
-.stat-card.c1{border-top-color:#0ea5e9;}
-.stat-card.c2{border-top-color:#10b981;}
-.stat-card.c3{border-top-color:#8b5cf6;}
-.stat-card.c4{border-top-color:#f59e0b;}
-.stat-card.c5{border-top-color:#ef4444;}
-.stat-label{font-size:.75rem;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px;}
-.stat-val{font-family:'DM Mono',monospace;font-size:2rem;font-weight:500;line-height:1;}
-.stat-unit{font-size:.72rem;color:var(--muted);}
-.badge{display:inline-block;font-size:.7rem;padding:2px 8px;border-radius:20px;margin-top:7px;font-weight:500;}
-.b-good{background:#dcfce7;color:#16a34a;}
-.b-warn{background:#fef9c3;color:#ca8a04;}
-.b-bad{background:#fee2e2;color:#dc2626;}
-.b-info{background:#dbeafe;color:#1d4ed8;}
-.chart-box{position:relative;height:200px;}
-.row{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
-.tag{font-size:.7rem;padding:2px 8px;border-radius:20px;background:#e0f2fe;color:#0369a1;font-weight:500;}
-.inp{width:100%;padding:8px 11px;border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:.84rem;background:var(--bg);outline:none;}
-.inp:focus{border-color:var(--accent);background:#fff;}
-label{font-size:.78rem;color:var(--muted);display:block;margin-bottom:3px;}
-.irow{display:flex;gap:8px;margin-bottom:10px;}
-.btn{padding:8px 16px;border-radius:8px;border:none;font-family:inherit;font-size:.83rem;font-weight:500;cursor:pointer;transition:.15s;}
-.btn-blue{background:var(--accent);color:#fff;}.btn-blue:hover{background:#0284c7;}
-.btn-green{background:#dcfce7;color:#16a34a;}.btn-green:hover{background:#bbf7d0;}
-.btn-red{background:#fee2e2;color:var(--red);}.btn-red:hover{background:#fecaca;}
-.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text);}.btn-ghost:hover{background:var(--bg);}
-select.inp{cursor:pointer;}
-#map{height:300px;border-radius:9px;border:1px solid var(--border);}
-.mini-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;}
-.mini-item{background:var(--bg);border-radius:8px;padding:10px;display:flex;justify-content:space-between;align-items:center;font-size:.82rem;}
-.mini-val{font-family:'DM Mono',monospace;font-weight:500;font-size:.88rem;}
-.ds-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;}
-.ds-item{background:var(--bg);border-radius:8px;padding:10px;}
-.ds-label{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;}
-.ds-val{font-family:'DM Mono',monospace;font-size:1rem;font-weight:500;}
-.ctrl-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
-.divider{height:1px;background:var(--border);margin:12px 0;}
-.log{background:var(--bg);border-radius:8px;padding:9px 11px;font-family:'DM Mono',monospace;font-size:.72rem;color:var(--muted);height:110px;overflow-y:auto;}
-.log-line{padding:1px 0;border-bottom:1px solid var(--border);}
-.log-line:last-child{border-bottom:none;}
+:root {
+  --bg:        #f5f6f8;
+  --white:     #ffffff;
+  --border:    #e4e7ec;
+  --border2:   #d0d5dd;
+  --text:      #101828;
+  --text-mid:  #475467;
+  --text-dim:  #98a2b3;
+  --blue:      #2563eb;
+  --blue-lt:   #eff6ff;
+  --blue-mid:  #bfdbfe;
+  --red:       #ef4444;
+  --red-lt:    #fef2f2;
+  --green:     #16a34a;
+  --green-lt:  #f0fdf4;
+  --orange:    #ea580c;
+  --orange-lt: #fff7ed;
+  --purple:    #7c3aed;
+  --purple-lt: #f5f3ff;
+  --teal:      #0891b2;
+  --teal-lt:   #ecfeff;
+  --firebase:  #f57c00;
+  --firebase-lt:#fff8f1;
+  --shadow-sm: 0 1px 3px rgba(16,24,40,0.08), 0 1px 2px rgba(16,24,40,0.04);
+  --shadow-md: 0 4px 12px rgba(16,24,40,0.08), 0 2px 4px rgba(16,24,40,0.04);
+  --r:         10px;
+}
 
-/* Bottle fill visualizer */
-.bottle-wrap{display:flex;flex-direction:column;align-items:center;gap:8px;}
-.bottle-svg{width:60px;}
-.fill-pct{font-family:'DM Mono',monospace;font-size:1.4rem;font-weight:500;}
-.fill-label{font-size:.72rem;color:var(--muted);}
-.progress-bar{width:100%;height:10px;background:#e2e8f0;border-radius:10px;overflow:hidden;margin-top:6px;}
-.progress-fill{height:100%;border-radius:10px;transition:width .5s,background .3s;}
+* { margin:0; padding:0; box-sizing:border-box; }
+html { font-size:14px; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 400;
+  min-height: 100vh;
+}
 
-/* ESP32 page */
-.pin-tbl{width:100%;border-collapse:collapse;font-size:.81rem;}
-.pin-tbl th{background:var(--bg);padding:7px 10px;text-align:left;font-size:.72rem;color:var(--muted);text-transform:uppercase;border-bottom:1px solid var(--border);}
-.pin-tbl td{padding:8px 10px;border-bottom:1px solid var(--border);}
-.pin-tbl tr:last-child td{border-bottom:none;}
-.chip{font-family:'DM Mono',monospace;font-size:.72rem;padding:2px 7px;border-radius:5px;font-weight:500;}
-.cp{background:#fee2e2;color:#dc2626;}.cg{background:#f1f5f9;color:#475569;}
-.cs{background:#dbeafe;color:#1d4ed8;}.ca{background:#fef9c3;color:#92400e;}
-.co{background:#f3e8ff;color:#7e22ce;}
-.code{background:#0f172a;color:#e2e8f0;border-radius:9px;padding:14px;font-family:'DM Mono',monospace;font-size:.76rem;line-height:1.65;overflow-x:auto;max-height:520px;overflow-y:auto;}
-.kw{color:#7dd3fc;}.fn{color:#86efac;}.st{color:#fde68a;}.cm{color:#64748b;font-style:italic;}.nm{color:#f9a8d4;}
-.ai-box{background:linear-gradient(135deg,#f0f9ff,#e0f2fe);border:1px solid #bae6fd;border-radius:9px;padding:16px;}
-.ai-out{background:#fff;border-radius:7px;padding:14px;font-size:.86rem;line-height:1.7;white-space:pre-wrap;min-height:100px;border:1px solid var(--border);margin-top:10px;}
-.spinner{display:inline-block;width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;margin-right:5px;}
-@keyframes spin{to{transform:rotate(360deg)}}
-.warn-box{padding:9px 12px;background:#fef9c3;border-radius:7px;font-size:.77rem;color:#92400e;margin-top:10px;}
-.alert-box{padding:9px 12px;background:#fee2e2;border:1px solid #fca5a5;border-radius:7px;font-size:.8rem;color:#991b1b;font-weight:500;}
-/* pump panel inside drone tab */
-.pump-panel{background:linear-gradient(135deg,#f0fdf4,#dcfce7);border:1px solid #86efac;border-radius:9px;padding:14px;margin-bottom:12px;}
-@media(max-width:900px){.grid5{grid-template-columns:repeat(3,1fr);}}
-@media(max-width:700px){.grid4,.grid5,.grid2{grid-template-columns:1fr 1fr;}}
-@media(max-width:440px){.grid2,.ds-grid{grid-template-columns:1fr;}nav{padding:0 12px;}.page{padding:14px;}.tab{padding:5px 8px;font-size:.75rem;}}
+/* ── Header ── */
+header {
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  height: 56px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: var(--shadow-sm);
+  flex-wrap: wrap;
+}
+.brand { display:flex; align-items:center; gap:10px; flex-shrink:0; }
+.brand-icon {
+  width:30px; height:30px; background:var(--blue);
+  border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:15px;
+}
+.brand-name { font-size:15px; font-weight:600; color:var(--text); letter-spacing:-0.2px; }
+.hdiv { width:1px; height:24px; background:var(--border); flex-shrink:0; }
+
+.flight-clock { display:flex; align-items:center; gap:8px; }
+.flight-clock-label { font-size:11px; font-family:'DM Mono',monospace; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.5px; }
+.flight-clock-val { font-family:'DM Mono',monospace; font-size:18px; font-weight:500; color:var(--red); letter-spacing:1px; min-width:100px; }
+
+.status-badge {
+  display:flex; align-items:center; gap:6px;
+  padding:4px 10px; border-radius:20px;
+  border:1px solid var(--border); background:var(--white);
+  font-size:11px; font-weight:500; color:var(--text-mid);
+}
+.status-dot { width:7px; height:7px; border-radius:50%; background:var(--text-dim); transition:background .3s; flex-shrink:0; }
+.status-dot.live   { background:var(--green); box-shadow:0 0 0 2px #dcfce7; animation:pulse-g 1.5s infinite; }
+.status-dot.armed  { background:#f59e0b; box-shadow:0 0 0 2px #fef3c7; }
+.status-dot.flight { background:var(--red); box-shadow:0 0 0 2px #fee2e2; animation:pulse-r .8s infinite; }
+@keyframes pulse-g { 0%,100%{box-shadow:0 0 0 2px #dcfce7} 50%{box-shadow:0 0 0 4px #dcfce7} }
+@keyframes pulse-r { 0%,100%{box-shadow:0 0 0 2px #fee2e2} 50%{box-shadow:0 0 0 4px #fee2e2} }
+
+.hz-badge { font-family:'DM Mono',monospace; font-size:11px; color:var(--text-dim); }
+.h-flex { flex:1; }
+
+.ctrl-group { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.inp {
+  height:34px; border:1px solid var(--border2); border-radius:8px;
+  background:var(--white); color:var(--text);
+  font-family:'DM Mono',monospace; font-size:12px;
+  padding:0 10px; outline:none; transition:border-color .15s, box-shadow .15s;
+}
+.inp:focus { border-color:var(--blue); box-shadow:0 0 0 3px #dbeafe; }
+.inp-ip   { width:136px; }
+.inp-port { width:52px; }
+
+.btn {
+  height:34px; padding:0 14px; border-radius:8px;
+  font-family:'DM Sans',sans-serif; font-size:13px; font-weight:500;
+  cursor:pointer; border:1px solid; transition:all .15s;
+  white-space:nowrap; display:flex; align-items:center; gap:6px;
+}
+.btn-primary { background:var(--blue); border-color:var(--blue); color:#fff; }
+.btn-primary:hover { background:#1d4ed8; }
+.btn-primary.on { background:var(--green); border-color:var(--green); }
+.btn-primary.on:hover { background:#15803d; }
+.btn-ghost { background:var(--white); border-color:var(--border2); color:var(--text-mid); }
+.btn-ghost:hover { border-color:var(--blue); color:var(--blue); background:var(--blue-lt); }
+.btn-warn  { background:#fffbeb; border-color:#fcd34d; color:#92400e; }
+.btn-warn:hover { background:#fef3c7; }
+.btn-excel { background:var(--green-lt); border-color:#86efac; color:var(--green); }
+.btn-excel:hover { background:#dcfce7; }
+.btn-excel.rec { background:var(--green); border-color:var(--green); color:#fff; }
+.btn-excel.rec:hover { background:#15803d; }
+.btn-firebase { background:var(--firebase-lt); border-color:#fdba74; color:var(--firebase); }
+.btn-firebase:hover { background:#ffedd5; }
+.btn-firebase.rec { background:var(--firebase); border-color:var(--firebase); color:#fff; }
+.btn-firebase.rec:hover { background:#e65100; }
+
+/* ── Layout ── */
+main { padding:20px 24px 32px; display:flex; flex-direction:column; gap:20px; max-width:1600px; margin:0 auto; }
+.sec-head { font-size:11px; font-weight:600; color:var(--text-dim); letter-spacing:0.8px; text-transform:uppercase; margin-bottom:10px; }
+
+/* ── Panel base ── */
+.panel {
+  background:var(--white); border:1px solid var(--border);
+  border-radius:var(--r); box-shadow:var(--shadow-sm);
+}
+
+/* ── Firebase config panel ── */
+.fb-panel {
+  border-left: 3px solid var(--firebase);
+  padding: 16px 20px;
+}
+.fb-panel-head {
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:14px; flex-wrap:wrap; gap:10px;
+}
+.fb-panel-title {
+  display:flex; align-items:center; gap:10px;
+}
+.fb-logo {
+  width:28px; height:28px; border-radius:6px;
+  background:var(--firebase); display:flex; align-items:center;
+  justify-content:center; font-size:14px; flex-shrink:0;
+}
+.fb-title-text { font-size:14px; font-weight:600; color:var(--text); }
+.fb-title-sub  { font-size:11px; color:var(--text-dim); margin-top:1px; }
+.fb-status-row { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.fb-stat-pill {
+  display:flex; align-items:center; gap:6px;
+  padding:4px 10px; border-radius:20px;
+  border:1px solid var(--border); background:var(--bg);
+  font-size:11px; color:var(--text-mid); font-family:'DM Mono',monospace;
+}
+.fb-stat-pill .dot { width:7px;height:7px;border-radius:50%;background:var(--text-dim);flex-shrink:0; }
+.fb-stat-pill.ok .dot  { background:var(--green); box-shadow:0 0 0 2px #dcfce7; animation:pulse-g 1.5s infinite; }
+.fb-stat-pill.err .dot { background:var(--red); }
+.fb-stat-pill.ok  { border-color:#86efac; color:var(--green); }
+.fb-stat-pill.err { border-color:#fca5a5; color:var(--red); }
+
+.fb-fields {
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:10px;
+}
+@media(max-width:700px){ .fb-fields { grid-template-columns:1fr; } }
+.fb-field { display:flex; flex-direction:column; gap:4px; }
+.fb-field label { font-size:11px; font-weight:500; color:var(--text-mid); }
+.fb-field .inp  { width:100%; font-size:11px; height:32px; }
+.fb-field-full  { grid-column:span 2; }
+@media(max-width:700px){ .fb-field-full { grid-column:span 1; } }
+
+.fb-actions { display:flex; align-items:center; gap:8px; margin-top:14px; flex-wrap:wrap; }
+.fb-write-info { font-size:11px; color:var(--text-dim); font-family:'DM Mono',monospace; }
+.fb-write-info span { color:var(--firebase); font-weight:500; }
+
+/* Write mode toggle */
+.write-mode-group { display:flex; gap:4px; }
+.wm-btn {
+  padding:4px 10px; border-radius:5px; cursor:pointer;
+  font-size:11px; font-weight:500; border:1px solid var(--border2);
+  color:var(--text-mid); background:var(--white); transition:all .15s;
+  font-family:'DM Sans',sans-serif;
+}
+.wm-btn.active { background:var(--firebase-lt); border-color:#fdba74; color:var(--firebase); }
+
+/* Throttle hint */
+.throttle-hint {
+  font-size:10px; color:var(--text-dim);
+  background:var(--bg); border:1px solid var(--border);
+  border-radius:5px; padding:3px 8px;
+  font-family:'DM Mono',monospace;
+}
+
+/* ── Excel bar ── */
+.excel-bar {
+  padding:12px 16px; display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+}
+.excel-info .excel-title { font-size:13px; font-weight:600; color:var(--text); }
+.excel-info .excel-desc  { font-size:11px; color:var(--text-dim); margin-top:2px; }
+.excel-stat { display:flex; align-items:center; gap:6px; font-family:'DM Mono',monospace; font-size:11px; color:var(--text-dim); }
+.excel-stat .dot-rec { width:7px;height:7px;border-radius:50%;background:var(--text-dim);transition:background .3s; }
+.excel-stat.rec .dot-rec { background:var(--green); animation:pulse-g .8s infinite; }
+.excel-stat.rec { color:var(--green); }
+.excel-actions { display:flex; gap:8px; margin-left:auto; flex-wrap:wrap; }
+
+/* ── Sensor cards ── */
+.cards-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(168px,1fr)); gap:12px; }
+.card {
+  background:var(--white); border:1px solid var(--border);
+  border-radius:var(--r); padding:16px; box-shadow:var(--shadow-sm);
+  transition:box-shadow .2s; position:relative; overflow:hidden;
+}
+.card:hover { box-shadow:var(--shadow-md); }
+.card-icon-wrap { width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;margin-bottom:12px;background:var(--card-lt,var(--blue-lt)); }
+.card-label  { font-size:11px;font-weight:500;color:var(--text-dim);letter-spacing:0.3px;margin-bottom:4px; }
+.card-value  { font-family:'DM Mono',monospace;font-size:26px;font-weight:500;color:var(--card-c,var(--blue));line-height:1;letter-spacing:-0.5px; }
+.card-unit   { font-size:11px;color:var(--text-dim);margin-top:4px; }
+.card-peak   { font-size:10px;color:var(--text-dim);margin-top:6px;font-family:'DM Mono',monospace; }
+.card-peak span { color:var(--card-c,var(--blue));font-weight:500; }
+.card-wide   { grid-column:span 2; }
+.axis-row    { display:flex;gap:8px;margin-top:4px; }
+.ax-chip     { flex:1;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:8px;text-align:center; }
+.ax-name     { font-size:10px;color:var(--text-dim);font-weight:500;margin-bottom:3px; }
+.ax-val      { font-family:'DM Mono',monospace;font-size:14px;font-weight:500; }
+
+/* ── Charts ── */
+.charts-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(440px,1fr)); gap:12px; }
+.chart-card  { background:var(--white);border:1px solid var(--border);border-radius:var(--r);padding:16px;box-shadow:var(--shadow-sm); }
+.chart-top   { display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px; }
+.chart-title { font-size:13px;font-weight:600;color:var(--text); }
+.chart-subtitle { font-size:11px;color:var(--text-dim);margin-top:1px;font-family:'DM Mono',monospace; }
+.chart-live      { font-family:'DM Mono',monospace;font-size:18px;font-weight:500;text-align:right;line-height:1; }
+.chart-live-unit { font-size:11px;color:var(--text-dim);margin-top:2px;text-align:right; }
+.chart-box       { height:150px;position:relative; }
+
+/* ── Table ── */
+.table-card    { background:var(--white);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow-sm);overflow:hidden; }
+.table-head    { display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border);gap:10px;flex-wrap:wrap; }
+.table-title   { font-size:14px;font-weight:600;color:var(--text); }
+.table-meta    { font-size:11px;color:var(--text-dim);font-family:'DM Mono',monospace; }
+.table-ctrls   { display:flex;align-items:center;gap:8px;margin-left:auto; }
+.rate-pills    { display:flex;gap:3px; }
+.rate-pill     { padding:3px 9px;border-radius:5px;font-size:11px;font-weight:500;cursor:pointer;border:1px solid var(--border2);color:var(--text-mid);background:var(--white);transition:all .15s; }
+.rate-pill.active { background:var(--blue-lt);border-color:var(--blue-mid);color:var(--blue); }
+.scroll-wrap   { overflow-x:auto;overflow-y:auto;max-height:260px; }
+.scroll-wrap::-webkit-scrollbar { width:5px;height:5px; }
+.scroll-wrap::-webkit-scrollbar-track { background:var(--bg); }
+.scroll-wrap::-webkit-scrollbar-thumb { background:var(--border2);border-radius:3px; }
+
+table { width:100%;border-collapse:collapse;font-size:12px; }
+thead th { position:sticky;top:0;z-index:2;background:var(--bg);padding:8px 12px;text-align:left;font-size:10px;font-weight:600;color:var(--text-dim);letter-spacing:0.5px;text-transform:uppercase;border-bottom:1px solid var(--border);white-space:nowrap; }
+tbody tr { border-bottom:1px solid var(--border);transition:background .1s; }
+tbody tr:last-child { border:none; }
+tbody tr:hover { background:#f8fafc; }
+tbody tr.launch-row { background:#fef2f2; }
+tbody td { padding:6px 12px;white-space:nowrap;font-family:'DM Mono',monospace;font-size:11px;color:var(--text-mid); }
+.tc-agl  { color:var(--blue);font-weight:500; }
+.tc-acc  { color:var(--red);font-weight:500; }
+.tc-pres { color:var(--teal); }
+.tc-temp { color:var(--orange); }
+.tc-ft   { color:var(--red);font-weight:500; }
+.tc-pos  { color:var(--green); }
+.tc-neg  { color:var(--red); }
+.tc-dim  { color:var(--text-dim); }
+
+.empty { padding:48px 24px;text-align:center;color:var(--text-dim); }
+.empty-icon  { font-size:32px;margin-bottom:10px; }
+.empty-title { font-size:14px;font-weight:500;color:var(--text-mid);margin-bottom:4px; }
+.empty-sub   { font-size:12px; }
+
+/* ── Toast ── */
+.toast {
+  position:fixed; bottom:20px; right:20px; z-index:9999;
+  background:var(--text); color:#fff;
+  padding:10px 16px; border-radius:8px;
+  font-size:12px; font-weight:500;
+  transform:translateY(80px); opacity:0;
+  transition:all .25s cubic-bezier(.34,1.56,.64,1);
+  box-shadow:var(--shadow-md); max-width:320px;
+}
+.toast.show { transform:translateY(0); opacity:1; }
+.toast.ok   { background:var(--green); }
+.toast.err  { background:var(--red); }
+.toast.warn { background:#f59e0b; color:var(--text); }
+
+footer { text-align:center;padding:16px;font-size:11px;color:var(--text-dim);border-top:1px solid var(--border);background:var(--white); }
+
+@media(max-width:640px) {
+  header { height:auto;padding:10px 16px; }
+  .charts-grid { grid-template-columns:1fr; }
+  main { padding:16px 12px 24px; }
+  .card-wide { grid-column:span 1; }
+}
 </style>
 </head>
 <body>
 
-<nav>
-  <div class="logo"><i>⬡</i> AquaDrone</div>
-  <div class="tabs">
-    <button class="tab on" onclick="go('dash',this)">Dashboard</button>
-    <button class="tab"    onclick="go('drone',this)">Drone Control</button>
-    <button class="tab"    onclick="go('hw',this)">ESP32 Setup</button>
-    <button class="tab"    onclick="go('ai',this)">AI Report</button>
+<!-- ── Header ── -->
+<header>
+  <div class="brand">
+    <div class="brand-icon">🚀</div>
+    <div><div class="brand-name">Rocket Telemetry</div></div>
   </div>
-  <div class="conn-area">
-    <div class="dot" id="dot"></div>
-    <span id="conn-lbl" style="font-size:.78rem;color:var(--muted)">Not connected</span>
-    <button class="conn-btn" id="conn-btn" onclick="toggleSerial()">Connect ESP32</button>
+  <div class="hdiv"></div>
+  <div class="flight-clock">
+    <span class="flight-clock-label">T+</span>
+    <span class="flight-clock-val" id="flightTime">00:00.000</span>
   </div>
-</nav>
-
-<div class="banner" id="banner">
-  🔌 Plug ESP32 via USB → click <strong>Connect ESP32</strong> → select COM port. <strong>Chrome / Edge only.</strong> Close Arduino Serial Monitor first.
-</div>
-
-<!-- ═══════════════════════════════════════════════════════
-     DASHBOARD
-════════════════════════════════════════════════════════ -->
-<div class="page on" id="page-dash">
-
-  <div class="grid5">
-    <!-- TDS -->
-    <div class="card stat-card c1">
-      <div class="stat-label">TDS</div>
-      <div><span class="stat-val" id="v-tds">—</span><span class="stat-unit"> ppm</span></div>
-      <div class="badge b-info" id="b-tds">● Waiting</div>
-      <div style="font-size:.7rem;color:var(--muted);margin-top:4px">Normal: &lt; 100 ppm</div>
-    </div>
-    <!-- TDS status -->
-    <div class="card stat-card c5">
-      <div class="stat-label">Water Status</div>
-      <div class="stat-val" id="v-wstatus" style="font-size:1.2rem;margin-top:6px">—</div>
-      <div class="badge b-info" id="b-wstatus">● Waiting</div>
-      <div style="font-size:.7rem;color:var(--muted);margin-top:4px">Threshold: 100 ppm</div>
-    </div>
-    <!-- Bottle fill -->
-    <div class="card stat-card c2">
-      <div class="stat-label">Bottle Level</div>
-      <div><span class="stat-val" id="v-fill">—</span><span class="stat-unit"> %</span></div>
-      <div class="badge b-info" id="b-fill">● Waiting</div>
-      <div class="progress-bar" style="margin-top:8px"><div class="progress-fill" id="fill-bar" style="width:0%;background:#10b981"></div></div>
-    </div>
-    <!-- Pump -->
-    <div class="card stat-card c3">
-      <div class="stat-label">Pump Relay</div>
-      <div class="stat-val" id="v-pump" style="font-size:1.4rem;margin-top:6px">—</div>
-      <div class="badge b-info" id="b-pump">● Waiting</div>
-      <div style="font-size:.7rem;color:var(--muted);margin-top:4px">Cycles: <span id="v-cyc">—</span></div>
-    </div>
-    <!-- Drone alt -->
-    <div class="card stat-card c4">
-      <div class="stat-label">Drone Alt</div>
-      <div><span class="stat-val" id="v-alt">0</span><span class="stat-unit"> m</span></div>
-      <div class="badge b-info" id="b-alt">● Grounded</div>
-      <div style="font-size:.7rem;color:var(--muted);margin-top:4px">Uptime: <span id="v-up">—</span></div>
-    </div>
+  <div class="status-badge">
+    <div class="status-dot" id="statusDot"></div>
+    <span id="statusText">Offline</span>
   </div>
-
-  <!-- Bottle full alert (hidden by default) -->
-  <div class="alert-box hidden" id="bottle-alert" style="margin-bottom:16px">
-    🚨 Bottle is full! Pump stopped automatically. Remove the bottle before resuming.
+  <span class="hz-badge" id="hzBadge">— Hz</span>
+  <div class="h-flex"></div>
+  <div class="ctrl-group">
+    <input class="inp inp-ip"   id="ipInput"   type="text" placeholder="192.168.x.x"/>
+    <input class="inp inp-port" id="portInput" type="text" value="81"/>
+    <button class="btn btn-primary" id="connBtn" onclick="toggleConnect()">Connect</button>
+    <button class="btn btn-warn"  onclick="sendArm()">Arm</button>
+    <button class="btn btn-ghost" onclick="sendReset()">Reset</button>
   </div>
+</header>
 
-  <div class="grid2">
-    <!-- TDS chart -->
-    <div class="card">
-      <div class="row">
-        <div class="card-title">TDS — Real-time</div>
-        <div style="display:flex;align-items:center;gap:6px;font-size:.72rem;color:var(--muted)">
-          Threshold 100ppm
-          <span style="width:20px;height:2px;background:var(--red);display:inline-block;border-radius:2px"></span>
+<!-- ── Main ── -->
+<main>
+
+  <!-- ══ Firebase Config Panel ══ -->
+  <div class="panel fb-panel">
+    <div class="fb-panel-head">
+      <div class="fb-panel-title">
+        <div class="fb-logo">🔥</div>
+        <div>
+          <div class="fb-title-text">Firebase Realtime Database</div>
+          <div class="fb-title-sub">Live telemetry sync — every packet pushed to your database</div>
         </div>
       </div>
-      <div class="chart-box"><canvas id="chartTDS"></canvas></div>
+      <div class="fb-status-row">
+        <div class="fb-stat-pill" id="fbStatusPill">
+          <div class="dot"></div>
+          <span id="fbStatusText">Not connected</span>
+        </div>
+        <div class="fb-stat-pill" id="fbWritePill" style="display:none">
+          <div class="dot" style="background:var(--firebase);box-shadow:0 0 0 2px #ffe0b2;animation:pulse-g .8s infinite"></div>
+          <span id="fbWriteCount">0 writes</span>
+        </div>
+      </div>
     </div>
-    <!-- Bottle fill + mini stats -->
-    <div class="card">
-      <div class="row"><div class="card-title">Bottle Fill Level</div><span class="tag">Ultrasonic</span></div>
-      <div style="display:flex;gap:20px;align-items:center">
-        <!-- SVG bottle -->
-        <div class="bottle-wrap">
-          <svg viewBox="0 0 60 110" class="bottle-svg" xmlns="http://www.w3.org/2000/svg">
-            <!-- cap -->
-            <rect x="22" y="2" width="16" height="10" rx="3" fill="#94a3b8"/>
-            <!-- neck -->
-            <rect x="24" y="12" width="12" height="10" rx="2" fill="#cbd5e1"/>
-            <!-- body outline -->
-            <rect x="10" y="22" width="40" height="80" rx="8" fill="#f0f9ff" stroke="#bae6fd" stroke-width="1.5"/>
-            <!-- water fill (clips from bottom) -->
-            <clipPath id="bottleClip">
-              <rect x="10" y="22" width="40" height="80" rx="8"/>
-            </clipPath>
-            <rect id="bottleFillRect" x="10" y="102" width="40" height="0" clip-path="url(#bottleClip)" fill="#0ea5e9" opacity=".7"/>
-            <!-- ultrasonic waves inside -->
-            <text x="30" y="70" text-anchor="middle" font-size="14" fill="#94a3b8">〜</text>
-          </svg>
-          <div class="fill-pct" id="fill-pct">—</div>
-          <div class="fill-label">fill level</div>
-        </div>
-        <!-- mini stats -->
-        <div style="flex:1;display:grid;gap:8px">
-          <div class="mini-item"><span style="color:var(--muted)">Distance</span><span class="mini-val" id="v-dist">— cm</span></div>
-          <div class="mini-item"><span style="color:var(--muted)">Bottle depth</span><span class="mini-val" id="v-bdepth">20 cm</span></div>
-          <div class="mini-item"><span style="color:var(--muted)">Stop at</span><span class="mini-val">90%</span></div>
-          <div class="mini-item"><span style="color:var(--muted)">TDS raw</span><span class="mini-val" id="v-tdsraw">— ppm</span></div>
-        </div>
+
+    <div class="fb-fields">
+      <div class="fb-field">
+        <label>API Key</label>
+        <input class="inp" id="fb-apiKey" type="text" placeholder="AIzaSy…"/>
       </div>
-      <!-- TDS quality note -->
-      <div style="margin-top:14px;padding:10px;background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;font-size:.78rem;color:#9a3412">
-        <strong>Water Quality Rule:</strong> TDS ≥ 100 ppm = Abnormal / Contaminated. TDS &lt; 100 ppm = Normal / Clean.
+      <div class="fb-field">
+        <label>Auth Domain</label>
+        <input class="inp" id="fb-authDomain" type="text" placeholder="your-app.firebaseapp.com"/>
       </div>
+      <div class="fb-field fb-field-full">
+        <label>Database URL</label>
+        <input class="inp" id="fb-dbUrl" type="text" placeholder="https://your-app-default-rtdb.firebaseio.com"/>
+      </div>
+      <div class="fb-field">
+        <label>Project ID</label>
+        <input class="inp" id="fb-projectId" type="text" placeholder="your-project-id"/>
+      </div>
+      <div class="fb-field">
+        <label>App ID</label>
+        <input class="inp" id="fb-appId" type="text" placeholder="1:123456:web:abcdef"/>
+      </div>
+    </div>
+
+    <div class="fb-actions">
+      <button class="btn btn-firebase" id="fbConnBtn" onclick="toggleFirebase()">🔥 Connect Firebase</button>
+      <button class="btn btn-ghost" onclick="saveFirebaseConfig()" title="Save credentials to localStorage">💾 Save Config</button>
+      <button class="btn btn-ghost" onclick="loadFirebaseConfig()" title="Load saved credentials">📂 Load Config</button>
+
+      <div class="hdiv" style="margin:0 4px;"></div>
+
+      <span style="font-size:11px;color:var(--text-dim);">Write mode:</span>
+      <div class="write-mode-group">
+        <button class="wm-btn active" id="wm-every"    onclick="setWriteMode('every')">Every packet</button>
+        <button class="wm-btn"        id="wm-throttle" onclick="setWriteMode('throttle')">Throttled</button>
+        <button class="wm-btn"        id="wm-launch"   onclick="setWriteMode('launch')">Launch only</button>
+      </div>
+      <span class="throttle-hint" id="throttleHint" style="display:none">1 write / sec</span>
+
+      <div class="hdiv" style="margin:0 4px;"></div>
+      <div class="fb-write-info">DB path: <span>telemetry/{sessionId}/packets/</span></div>
     </div>
   </div>
-</div>
 
-<!-- ═══════════════════════════════════════════════════════
-     DRONE CONTROL (includes pump controls)
-════════════════════════════════════════════════════════ -->
-<div class="page" id="page-drone">
-  <div class="grid2">
-    <div>
-      <!-- Launch -->
-      <div class="card" style="margin-bottom:16px">
-        <div class="row"><div class="card-title">Launch Control</div><span class="tag">Flight</span></div>
-        <label>Drone</label>
-        <select class="inp" style="margin-bottom:10px">
-          <option>Drone #1 — AquaSampler A</option>
-          <option selected>Drone #2 — AquaSampler B</option>
-          <option>Drone #3 — AquaSampler C</option>
-        </select>
-        <div class="divider"></div>
-        <label>Target Location</label>
-        <div class="irow">
-          <div style="flex:1"><label>Lat</label><input class="inp" id="lat" value="13.0827"></div>
-          <div style="flex:1"><label>Lon</label><input class="inp" id="lon" value="80.2707"></div>
-        </div>
-        <div class="irow" style="margin-bottom:0">
-          <input class="inp" id="locname" placeholder="Location name">
-          <button class="btn btn-ghost" onclick="flyTo()">📍</button>
-          <button class="btn btn-blue"  onclick="launch()">🚀 Launch</button>
-        </div>
-      </div>
-
-      <!-- Sampling + Pump (merged) -->
-      <div class="card">
-        <div class="row"><div class="card-title">Sampling &amp; Pump Control</div><span class="tag" id="s-tag">Idle</span></div>
-
-        <!-- Drone status -->
-        <div class="ds-grid">
-          <div class="ds-item"><div class="ds-label">Altitude</div><div class="ds-val" id="d-alt">0 m</div></div>
-          <div class="ds-item"><div class="ds-label">Battery</div><div class="ds-val" id="d-bat">87%</div></div>
-          <div class="ds-item"><div class="ds-label">Signal</div><div class="ds-val">Strong</div></div>
-        </div>
-
-        <!-- Flight controls -->
-        <div class="ctrl-row">
-          <button class="btn btn-ghost" onclick="releaseTube()">💧 Release Tube</button>
-          <button class="btn btn-blue"  onclick="startPump()">⬇ Start Pump</button>
-          <button class="btn btn-red"   onclick="stopAll()">■ Stop All</button>
-          <button class="btn btn-ghost" onclick="returnHome()">⏎ Return</button>
-        </div>
-        <div style="margin-top:10px;font-size:.78rem;color:var(--muted);margin-bottom:12px" id="s-log">Ready. Select drone and pick a location on the map.</div>
-
-        <div class="divider"></div>
-
-        <!-- Pump status panel -->
-        <div class="pump-panel">
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <div>
-              <div style="font-size:.78rem;color:#065f46;font-weight:500">Pump / Relay Status</div>
-              <div style="font-size:1.2rem;font-weight:600;color:#065f46;margin-top:2px" id="dp-status">● —</div>
-            </div>
-            <div style="text-align:right;font-size:.78rem;color:#065f46">
-              Cycles: <span id="dp-cycles">—</span><br>
-              Run: <span id="dp-run">—</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Manual pump buttons -->
-        <div style="display:flex;gap:8px;margin-bottom:10px">
-          <button class="btn btn-green" style="flex:1" onclick="cmdPump('ON')">⬇ Pump ON</button>
-          <button class="btn btn-red"   style="flex:1" onclick="cmdPump('OFF')">■ Pump OFF</button>
-        </div>
-
-        <!-- Bottle fill in drone tab -->
-        <div style="background:var(--bg);border-radius:8px;padding:12px">
-          <div style="font-size:.8rem;font-weight:600;margin-bottom:8px;color:var(--text)">Bottle Fill (Ultrasonic)</div>
-          <div style="display:flex;align-items:center;gap:10px">
-            <div style="flex:1">
-              <div class="progress-bar" style="height:14px"><div class="progress-fill" id="fill-bar2" style="width:0%;background:#10b981"></div></div>
-            </div>
-            <span class="mini-val" id="dfill-pct">—</span>
-          </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:8px">
-            <div class="mini-item" style="flex-direction:column;align-items:flex-start;gap:2px">
-              <span style="font-size:.68rem;color:var(--muted)">Distance</span>
-              <span class="mini-val" id="d-dist">— cm</span>
-            </div>
-            <div class="mini-item" style="flex-direction:column;align-items:flex-start;gap:2px">
-              <span style="font-size:.68rem;color:var(--muted)">TDS</span>
-              <span class="mini-val" id="d-tds">— ppm</span>
-            </div>
-            <div class="mini-item" style="flex-direction:column;align-items:flex-start;gap:2px">
-              <span style="font-size:.68rem;color:var(--muted)">Water</span>
-              <span class="mini-val" id="d-wq" style="font-size:.78rem">—</span>
-            </div>
-          </div>
-        </div>
-
-        <div style="margin-top:10px;font-size:.82rem;font-weight:500;margin-bottom:6px">Event log</div>
-        <div class="log" id="log"><div class="log-line">Waiting for ESP32...</div></div>
-      </div>
+  <!-- ══ Excel + Clear bar ══ -->
+  <div class="panel excel-bar">
+    <div class="excel-info">
+      <div class="excel-title">Live Excel Export</div>
+      <div class="excel-desc">Auto-saves every 5 seconds — all rows from session start</div>
     </div>
-
-    <!-- Map -->
-    <div class="card">
-      <div class="row"><div class="card-title">Map — click to set target</div><span class="tag">OSM</span></div>
-      <div id="map"></div>
-      <div style="margin-top:8px;font-size:.74rem;color:var(--muted)">📍 Click map to auto-fill coordinates.</div>
+    <div class="excel-stat" id="xlStat">
+      <div class="dot-rec"></div>
+      <span id="xlStatText">Not recording</span>
+    </div>
+    <div class="excel-actions">
+      <button class="btn btn-excel" id="xlBtn" onclick="toggleExcel()">▶ Start Logging</button>
+      <button class="btn btn-ghost" onclick="manualExport()">↓ Save Now</button>
+      <button class="btn btn-ghost" onclick="clearAll()">Clear</button>
     </div>
   </div>
-</div>
 
-<!-- ═══════════════════════════════════════════════════════
-     ESP32 SETUP
-════════════════════════════════════════════════════════ -->
-<div class="page" id="page-hw">
-  <div class="grid2">
-    <div>
-      <div class="card" style="margin-bottom:16px">
-        <div class="row"><div class="card-title">Wiring Connections</div><span class="tag">Hardware</span></div>
-
-        <div style="font-weight:600;font-size:.83rem;margin-bottom:8px">① TDS Sensor → ESP32</div>
-        <table class="pin-tbl" style="margin-bottom:16px">
-          <thead><tr><th>TDS Pin</th><th>Wire</th><th>ESP32</th></tr></thead>
-          <tbody>
-            <tr><td>VCC</td><td><span style="color:#ef4444">● Red</span></td><td><span class="chip cp">3V3</span></td></tr>
-            <tr><td>GND</td><td><span style="color:#64748b">● Black</span></td><td><span class="chip cg">GND</span></td></tr>
-            <tr><td>AOUT</td><td><span style="color:#f59e0b">● Yellow</span></td><td><span class="chip ca">GPIO 34</span></td></tr>
-          </tbody>
-        </table>
-
-        <div style="font-weight:600;font-size:.83rem;margin-bottom:8px">② Relay Module → ESP32 + Pump</div>
-        <table class="pin-tbl" style="margin-bottom:16px">
-          <thead><tr><th>Relay Pin</th><th>Wire</th><th>Connect to</th></tr></thead>
-          <tbody>
-            <tr><td>VCC</td><td><span style="color:#ef4444">● Red</span></td><td><span class="chip cp">ESP32 VIN</span></td></tr>
-            <tr><td>GND</td><td><span style="color:#64748b">● Black</span></td><td><span class="chip cg">ESP32 GND</span></td></tr>
-            <tr><td>IN1</td><td><span style="color:#0ea5e9">● Blue</span></td><td><span class="chip cs">GPIO 26</span></td></tr>
-            <tr><td>COM</td><td><span style="color:#ef4444">● Red</span></td><td><span class="chip cp">PSU (+)</span></td></tr>
-            <tr><td>NO</td><td><span style="color:#10b981">● Green</span></td><td>Pump (+) wire</td></tr>
-            <tr><td>—</td><td><span style="color:#64748b">● Black</span></td><td>PSU(−) → Pump(−)</td></tr>
-          </tbody>
-        </table>
-
-        <div style="font-weight:600;font-size:.83rem;margin-bottom:8px">③ HC-SR04 Ultrasonic → ESP32</div>
-        <table class="pin-tbl">
-          <thead><tr><th>HC-SR04 Pin</th><th>Wire</th><th>ESP32</th></tr></thead>
-          <tbody>
-            <tr><td>VCC</td><td><span style="color:#ef4444">● Red</span></td><td><span class="chip cp">VIN / 5V</span></td></tr>
-            <tr><td>GND</td><td><span style="color:#64748b">● Black</span></td><td><span class="chip cg">GND</span></td></tr>
-            <tr><td>TRIG</td><td><span style="color:#8b5cf6">● Purple</span></td><td><span class="chip co">GPIO 27</span></td></tr>
-            <tr><td>ECHO</td><td><span style="color:#0ea5e9">● Blue</span></td><td><span class="chip cs">GPIO 14</span></td></tr>
-          </tbody>
-        </table>
-        <div class="warn-box">
-          ⚠ HC-SR04 ECHO outputs 5V — use a voltage divider (1kΩ + 2kΩ) to drop it to 3.3V before GPIO 14.<br>
-          ⚠ GPIO 34 is input-only. Relay IN1 is active-LOW (LOW = pump ON).
+  <!-- ══ Live sensor cards ══ -->
+  <div>
+    <div class="sec-head">Live Readings</div>
+    <div class="cards-grid">
+      <div class="card" style="--card-c:var(--blue);--card-lt:var(--blue-lt)">
+        <div class="card-icon-wrap">⛰️</div>
+        <div class="card-label">Altitude AGL</div>
+        <div class="card-value" id="v-agl">—</div>
+        <div class="card-unit">meters</div>
+        <div class="card-peak">Peak <span id="v-maxalt">0.0</span> m</div>
+      </div>
+      <div class="card" style="--card-c:var(--red);--card-lt:var(--red-lt)">
+        <div class="card-icon-wrap">⚡</div>
+        <div class="card-label">Accel Magnitude</div>
+        <div class="card-value" id="v-accmag">—</div>
+        <div class="card-unit">m/s²</div>
+        <div class="card-peak">Peak <span id="v-maxacc">0.0</span> m/s²</div>
+      </div>
+      <div class="card" style="--card-c:var(--teal);--card-lt:var(--teal-lt)">
+        <div class="card-icon-wrap">🌡️</div>
+        <div class="card-label">Pressure</div>
+        <div class="card-value" id="v-pres" style="font-size:20px">—</div>
+        <div class="card-unit">hPa · BMP280</div>
+        <div class="card-peak">ASL <span id="v-alt">—</span> m</div>
+      </div>
+      <div class="card" style="--card-c:var(--orange);--card-lt:var(--orange-lt)">
+        <div class="card-icon-wrap">🔆</div>
+        <div class="card-label">Temperature</div>
+        <div class="card-value" id="v-temp">—</div>
+        <div class="card-unit">°C · BMP280</div>
+        <div class="card-peak">MPU <span id="v-mput">—</span> °C</div>
+      </div>
+      <div class="card card-wide" style="--card-c:var(--blue);--card-lt:var(--blue-lt)">
+        <div class="card-icon-wrap" style="display:inline-flex;margin-bottom:8px;">📐</div>
+        <span class="card-label" style="display:inline;margin-left:8px;">Accelerometer · MPU6050 · ±16g</span>
+        <div class="axis-row" style="margin-top:10px;">
+          <div class="ax-chip"><div class="ax-name">AX</div><div class="ax-val" id="v-ax" style="color:var(--red)">0.00</div></div>
+          <div class="ax-chip"><div class="ax-name">AY</div><div class="ax-val" id="v-ay" style="color:var(--blue)">0.00</div></div>
+          <div class="ax-chip"><div class="ax-name">AZ</div><div class="ax-val" id="v-az" style="color:var(--teal)">0.00</div></div>
+          <div class="ax-chip"><div class="ax-name">|A|</div><div class="ax-val" id="v-amag" style="color:var(--red)">0.00</div></div>
         </div>
       </div>
-
-      <div class="card">
-        <div class="card-title">Setup Steps</div>
-        <div style="font-size:.82rem;display:grid;gap:8px">
-          <div style="padding:9px;background:#f0f9ff;border-left:3px solid var(--accent);border-radius:0 7px 7px 0">1. Flash the code (right panel) at 115200 baud</div>
-          <div style="padding:9px;background:#f0fdf4;border-left:3px solid var(--green);border-radius:0 7px 7px 0">2. Mount ultrasonic sensor pointing down into bottle neck</div>
-          <div style="padding:9px;background:#fef9c3;border-left:3px solid var(--amber);border-radius:0 7px 7px 0">3. Set BOTTLE_DEPTH_CM to your actual bottle height in the code</div>
-          <div style="padding:9px;background:#fee2e2;border-left:3px solid var(--red);border-radius:0 7px 7px 0">4. Close Arduino Serial Monitor — open this dashboard in Chrome/Edge</div>
-          <div style="padding:9px;background:#f0f9ff;border-left:3px solid var(--accent);border-radius:0 7px 7px 0">5. Click Connect ESP32 → select COM port → data streams live</div>
+      <div class="card card-wide" style="--card-c:var(--purple);--card-lt:var(--purple-lt)">
+        <div class="card-icon-wrap" style="display:inline-flex;margin-bottom:8px;">🔄</div>
+        <span class="card-label" style="display:inline;margin-left:8px;">Gyroscope · MPU6050 · ±500°/s</span>
+        <div class="axis-row" style="margin-top:10px;">
+          <div class="ax-chip"><div class="ax-name">GX</div><div class="ax-val" id="v-gx" style="color:var(--purple)">0.00</div></div>
+          <div class="ax-chip"><div class="ax-name">GY</div><div class="ax-val" id="v-gy" style="color:var(--orange)">0.00</div></div>
+          <div class="ax-chip"><div class="ax-name">GZ</div><div class="ax-val" id="v-gz" style="color:var(--teal)">0.00</div></div>
+          <div class="ax-chip"><div class="ax-name">|G|</div><div class="ax-val" id="v-gmag" style="color:var(--purple)">0.00</div></div>
         </div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="row">
-        <div class="card-title">ESP32 Arduino Code</div>
-        <button class="btn btn-ghost" style="font-size:.74rem;padding:4px 10px" onclick="copyCode()">📋 Copy</button>
-      </div>
-      <div class="code" id="ecode">
-<span class="cm">// AquaDrone ESP32
-// TDS    → GPIO 34  (ADC, input-only)
-// Relay  → GPIO 26  (active-LOW)
-// TRIG   → GPIO 27
-// ECHO   → GPIO 14  (use voltage divider! 5V→3.3V)</span>
-
-<span class="kw">#define</span> TDS_PIN       <span class="nm">34</span>
-<span class="kw">#define</span> RELAY_PIN     <span class="nm">26</span>
-<span class="kw">#define</span> TRIG_PIN      <span class="nm">27</span>
-<span class="kw">#define</span> ECHO_PIN      <span class="nm">14</span>
-<span class="kw">#define</span> VREF          <span class="nm">3.3</span>
-<span class="kw">#define</span> ADC_RES       <span class="nm">4096.0</span>
-<span class="kw">#define</span> BOTTLE_DEPTH_CM <span class="nm">20.0</span>  <span class="cm">// your bottle height in cm</span>
-<span class="kw">#define</span> STOP_FILL_PCT   <span class="nm">90</span>    <span class="cm">// stop pump at 90% full</span>
-<span class="kw">#define</span> TDS_THRESHOLD   <span class="nm">100</span>   <span class="cm">// >= 100 ppm = abnormal</span>
-
-<span class="kw">float</span>         kValue    = <span class="nm">1.0</span>;
-<span class="kw">bool</span>          pumpOn    = <span class="kw">false</span>;
-<span class="kw">bool</span>          autoMode  = <span class="kw">true</span>;
-<span class="kw">int</span>           cycles    = <span class="nm">0</span>;
-<span class="kw">unsigned long</span> lastRead  = <span class="nm">0</span>;
-<span class="kw">unsigned long</span> pumpStart = <span class="nm">0</span>, totalMs = <span class="nm">0</span>;
-
-<span class="kw">void</span> <span class="fn">setup</span>() {
-  Serial.<span class="fn">begin</span>(<span class="nm">115200</span>);
-  <span class="fn">analogReadResolution</span>(<span class="nm">12</span>);
-  <span class="fn">pinMode</span>(RELAY_PIN, OUTPUT);
-  <span class="fn">pinMode</span>(TRIG_PIN,  OUTPUT);
-  <span class="fn">pinMode</span>(ECHO_PIN,  INPUT);
-  <span class="fn">digitalWrite</span>(RELAY_PIN, HIGH); <span class="cm">// OFF at start</span>
-  Serial.<span class="fn">println</span>(<span class="st">"READY"</span>);
-}
-
-<span class="cm">// ── TDS Reading ─────────────────────────────────────────</span>
-<span class="kw">float</span> <span class="fn">readTDS</span>() {
-  <span class="kw">float</span> sum = <span class="nm">0</span>;
-  <span class="kw">for</span>(<span class="kw">int</span> i=<span class="nm">0</span>; i&lt;<span class="nm">30</span>; i++){
-    sum += <span class="fn">analogRead</span>(TDS_PIN);
-    <span class="fn">delay</span>(<span class="nm">10</span>);
-  }
-  <span class="kw">float</span> v = (sum/<span class="nm">30.0</span>) * VREF / ADC_RES;
-  <span class="kw">return</span> <span class="fn">constrain</span>(
-    (<span class="nm">133.42</span>*v*v*v - <span class="nm">255.86</span>*v*v + <span class="nm">857.39</span>*v)*<span class="nm">0.5</span>*kValue,
-    <span class="nm">0</span>, <span class="nm">1500</span>);
-}
-
-<span class="cm">// ── Ultrasonic Distance ──────────────────────────────────</span>
-<span class="kw">float</span> <span class="fn">readDistance</span>() {
-  <span class="fn">digitalWrite</span>(TRIG_PIN, LOW);
-  <span class="fn">delayMicroseconds</span>(<span class="nm">2</span>);
-  <span class="fn">digitalWrite</span>(TRIG_PIN, HIGH);
-  <span class="fn">delayMicroseconds</span>(<span class="nm">10</span>);
-  <span class="fn">digitalWrite</span>(TRIG_PIN, LOW);
-  <span class="kw">long</span> dur = <span class="fn">pulseIn</span>(ECHO_PIN, HIGH, <span class="nm">30000</span>); <span class="cm">// 30ms timeout</span>
-  <span class="kw">if</span>(dur == <span class="nm">0</span>) <span class="kw">return</span> -<span class="nm">1</span>; <span class="cm">// no echo</span>
-  <span class="kw">return</span> dur * <span class="nm">0.0343</span> / <span class="nm">2.0</span>;  <span class="cm">// cm</span>
-}
-
-<span class="cm">// ── Fill % from distance ─────────────────────────────────</span>
-<span class="kw">int</span> <span class="fn">getFillPct</span>(<span class="kw">float</span> distCm) {
-  <span class="kw">if</span>(distCm &lt; <span class="nm">0</span>) <span class="kw">return</span> -<span class="nm">1</span>;
-  <span class="cm">// sensor at top: small distance = nearly full</span>
-  <span class="kw">float</span> filled = BOTTLE_DEPTH_CM - distCm;
-  <span class="kw">int</span> pct = (<span class="kw">int</span>)((filled / BOTTLE_DEPTH_CM) * <span class="nm">100.0</span>);
-  <span class="kw">return</span> <span class="fn">constrain</span>(pct, <span class="nm">0</span>, <span class="nm">100</span>);
-}
-
-<span class="cm">// ── Pump Control ─────────────────────────────────────────</span>
-<span class="kw">void</span> <span class="fn">setPump</span>(<span class="kw">bool</span> on) {
-  <span class="kw">if</span>(on == pumpOn) <span class="kw">return</span>;
-  pumpOn = on;
-  <span class="fn">digitalWrite</span>(RELAY_PIN, on ? LOW : HIGH);
-  <span class="kw">if</span>(on){ pumpStart = <span class="fn">millis</span>(); cycles++; }
-  <span class="kw">else</span>  { totalMs += <span class="fn">millis</span>() - pumpStart; }
-  Serial.<span class="fn">println</span>(on ? <span class="st">"PUMP:ON"</span> : <span class="st">"PUMP:OFF"</span>);
-}
-
-<span class="cm">// ── Main Loop ────────────────────────────────────────────</span>
-<span class="kw">void</span> <span class="fn">loop</span>() {
-
-  <span class="kw">if</span>(<span class="fn">millis</span>() - lastRead >= <span class="nm">1500</span>) {
-    lastRead = <span class="fn">millis</span>();
-
-    <span class="kw">float</span> tds     = <span class="fn">readTDS</span>();
-    <span class="kw">float</span> distCm  = <span class="fn">readDistance</span>();
-    <span class="kw">int</span>   fillPct = <span class="fn">getFillPct</span>(distCm);
-    <span class="kw">unsigned long</span> runMs = pumpOn ?
-      totalMs + (<span class="fn">millis</span>()-pumpStart) : totalMs;
-
-    <span class="cm">// Serial output parsed by dashboard:</span>
-    <span class="cm">// TDS:85.2,PUMP:ON,CYC:1,RUN:5000,UP:12000,DIST:8.4,FILL:58</span>
-    Serial.<span class="fn">print</span>(<span class="st">"TDS:"</span>);   Serial.<span class="fn">print</span>(tds,<span class="nm">1</span>);
-    Serial.<span class="fn">print</span>(<span class="st">",PUMP:"</span>); Serial.<span class="fn">print</span>(pumpOn?<span class="st">"ON"</span>:<span class="st">"OFF"</span>);
-    Serial.<span class="fn">print</span>(<span class="st">",CYC:"</span>);  Serial.<span class="fn">print</span>(cycles);
-    Serial.<span class="fn">print</span>(<span class="st">",RUN:"</span>);  Serial.<span class="fn">print</span>(runMs);
-    Serial.<span class="fn">print</span>(<span class="st">",UP:"</span>);   Serial.<span class="fn">print</span>(<span class="fn">millis</span>());
-    Serial.<span class="fn">print</span>(<span class="st">",DIST:"</span>); Serial.<span class="fn">print</span>(distCm,<span class="nm">1</span>);
-    Serial.<span class="fn">print</span>(<span class="st">",FILL:"</span>); Serial.<span class="fn">println</span>(fillPct);
-
-    <span class="cm">// Auto-stop pump when bottle reaches 90% full</span>
-    <span class="kw">if</span>(pumpOn && fillPct >= STOP_FILL_PCT) {
-      <span class="fn">setPump</span>(<span class="kw">false</span>);
-      Serial.<span class="fn">println</span>(<span class="st">"BOTTLE_FULL"</span>);
-    }
-  }
-
-  <span class="cm">// Commands from dashboard: ON / OFF / AUTO / MANUAL / K=x</span>
-  <span class="kw">if</span>(Serial.<span class="fn">available</span>()) {
-    String c = Serial.<span class="fn">readStringUntil</span>(<span class="st">'\n'</span>);
-    c.<span class="fn">trim</span>(); c.<span class="fn">toUpperCase</span>();
-    <span class="kw">if</span>     (c==<span class="st">"ON"</span>)    { autoMode=<span class="kw">false</span>; <span class="fn">setPump</span>(<span class="kw">true</span>); }
-    <span class="kw">else if</span>(c==<span class="st">"OFF"</span>)   { autoMode=<span class="kw">false</span>; <span class="fn">setPump</span>(<span class="kw">false</span>); }
-    <span class="kw">else if</span>(c==<span class="st">"AUTO"</span>)  autoMode=<span class="kw">true</span>;
-    <span class="kw">else if</span>(c==<span class="st">"MANUAL"</span>) autoMode=<span class="kw">false</span>;
-    <span class="kw">else if</span>(c.<span class="fn">startsWith</span>(<span class="st">"K="</span>))
-      kValue = c.<span class="fn">substring</span>(<span class="nm">2</span>).<span class="fn">toFloat</span>();
-  }
-}
       </div>
     </div>
   </div>
-</div>
 
-<!-- ═══════════════════════════════════════════════════════
-     AI REPORT
-════════════════════════════════════════════════════════ -->
-<div class="page" id="page-ai">
-  <div class="grid2">
-    <div>
-      <div class="card">
-        <div class="row"><div class="card-title">Generate Report</div><span class="tag">Claude AI</span></div>
-        <label>Report type</label>
-        <select class="inp" id="rtype" style="margin-bottom:10px">
-          <option>Full Water Quality Assessment</option>
-          <option>Contamination Risk Analysis</option>
-          <option>TDS Trend Analysis</option>
-          <option>Pump &amp; Bottle Fill Efficiency Report</option>
-        </select>
-        <label>Notes / context</label>
-        <textarea class="inp" id="rnotes" rows="3" placeholder="Location, water source, conditions..." style="resize:vertical;margin-bottom:10px"></textarea>
-        <button class="btn btn-blue" style="width:100%" onclick="genReport()">⚡ Generate</button>
+  <!-- ══ Charts ══ -->
+  <div>
+    <div class="sec-head">Live Graphs</div>
+    <div class="charts-grid">
+      <div class="chart-card">
+        <div class="chart-top">
+          <div><div class="chart-title">Altitude AGL</div><div class="chart-subtitle">meters above ground level</div></div>
+          <div><div class="chart-live" style="color:var(--blue)" id="cv-agl">—</div><div class="chart-live-unit">m</div></div>
+        </div>
+        <div class="chart-box"><canvas id="c-agl"></canvas></div>
       </div>
-      <div class="card" style="margin-top:16px">
-        <div class="card-title">Live Snapshot</div>
-        <div style="display:grid;gap:6px;font-size:.83rem">
-          <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)"><span style="color:var(--muted)">TDS</span><span id="r-tds">—</span></div>
-          <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)"><span style="color:var(--muted)">Water status</span><span id="r-wstatus">—</span></div>
-          <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)"><span style="color:var(--muted)">Threshold</span><span>100 ppm</span></div>
-          <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)"><span style="color:var(--muted)">Bottle fill</span><span id="r-fill">—</span></div>
-          <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)"><span style="color:var(--muted)">Pump</span><span id="r-pump">—</span></div>
-          <div style="display:flex;justify-content:space-between;padding:6px 0"><span style="color:var(--muted)">Cycles</span><span id="r-cyc">—</span></div>
+      <div class="chart-card">
+        <div class="chart-top">
+          <div><div class="chart-title">Accel Magnitude</div><div class="chart-subtitle">net vector |A|</div></div>
+          <div><div class="chart-live" style="color:var(--red)" id="cv-acc">—</div><div class="chart-live-unit">m/s²</div></div>
+        </div>
+        <div class="chart-box"><canvas id="c-acc"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-top">
+          <div><div class="chart-title">Pressure</div><div class="chart-subtitle">BMP280 barometer</div></div>
+          <div><div class="chart-live" style="color:var(--teal)" id="cv-pres">—</div><div class="chart-live-unit">hPa</div></div>
+        </div>
+        <div class="chart-box"><canvas id="c-pres"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-top">
+          <div><div class="chart-title">Temperature</div><div class="chart-subtitle">BMP280 sensor</div></div>
+          <div><div class="chart-live" style="color:var(--orange)" id="cv-temp">—</div><div class="chart-live-unit">°C</div></div>
+        </div>
+        <div class="chart-box"><canvas id="c-temp"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-top">
+          <div><div class="chart-title">Accelerometer X / Y / Z</div><div class="chart-subtitle">MPU6050 · m/s²</div></div>
+        </div>
+        <div class="chart-box"><canvas id="c-accel"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-top">
+          <div><div class="chart-title">Gyroscope X / Y / Z</div><div class="chart-subtitle">MPU6050 · rad/s</div></div>
+        </div>
+        <div class="chart-box"><canvas id="c-gyro"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ Data Log ══ -->
+  <div class="table-card">
+    <div class="table-head">
+      <div>
+        <div class="table-title">Data Log</div>
+        <div class="table-meta" id="logCount">0 rows recorded</div>
+      </div>
+      <div class="table-ctrls">
+        <div class="rate-pills">
+          <button class="rate-pill active" onclick="setRate(1)"  id="r1">Every row</button>
+          <button class="rate-pill"        onclick="setRate(5)"  id="r5">1 : 5</button>
+          <button class="rate-pill"        onclick="setRate(20)" id="r20">1 : 20</button>
         </div>
       </div>
     </div>
-    <div class="card">
-      <div class="row">
-        <div class="card-title">Analysis Output</div>
-        <button class="btn btn-ghost" id="dl-btn" style="display:none;font-size:.74rem" onclick="dlReport()">⬇ Download</button>
+    <div class="scroll-wrap">
+      <div class="empty" id="emptyState">
+        <div class="empty-icon">🚀</div>
+        <div class="empty-title">No data yet</div>
+        <div class="empty-sub">Connect to your ESP32 to start receiving telemetry</div>
       </div>
-      <div class="ai-box">
-        <div style="font-size:.8rem;color:#0369a1;font-weight:500">🤖 AI Water Quality Analyst</div>
-        <div style="font-size:.75rem;color:#0369a1;margin-top:2px">Threshold: TDS ≥ 100 ppm = Abnormal</div>
-      </div>
-      <div class="ai-out" id="ai-out">Click Generate to analyze your real-time TDS and bottle fill data.</div>
+      <table id="dataTable" style="display:none">
+        <thead>
+          <tr>
+            <th>Uptime ms</th><th>T+ ms</th><th>Pkt</th>
+            <th>AGL m</th><th>Alt ASL m</th><th>Pressure hPa</th><th>Temp °C</th>
+            <th>|A| m/s²</th><th>Ax</th><th>Ay</th><th>Az</th>
+            <th>Gx rad/s</th><th>Gy</th><th>Gz</th><th>MPU °C</th><th>Launch</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
     </div>
   </div>
-</div>
 
-<!-- ═══════════════════════════════════════════════════════
-     JAVASCRIPT
-════════════════════════════════════════════════════════ -->
+</main>
+
+<footer>Rocket Telemetry · ESP32 · MPU6050 + BMP280 · WebSocket + Firebase Realtime DB</footer>
+<div class="toast" id="toast"></div>
+
 <script>
-// ── STATE ─────────────────────────────────────────────────
-let port=null, reader=null, running=false;
-let tdsVal=null, pumpState='—', cycles=0, runMs=0, uptimeMs=0;
-let distCm=null, fillPct=null;
-const BOTTLE_DEPTH = 20; // cm — matches ESP32 default
-const hist=[], MAX=40, lastReport={v:''};
+// ════════════════════════════════════════════════════════════
+//  CONFIG
+// ════════════════════════════════════════════════════════════
+const MAX_PTS = 300;
+const SAVE_MS = 5000;
 
-// ── CHARTS ────────────────────────────────────────────────
-const tdsCtx = document.getElementById('chartTDS').getContext('2d');
-const chartTDS = new Chart(tdsCtx, {
-  type:'line',
-  data:{labels:[], datasets:[
-    {data:[], borderColor:'#0ea5e9', backgroundColor:'rgba(14,165,233,.08)', tension:.4, pointRadius:0, fill:true, borderWidth:2, label:'TDS'},
-    {data:[], borderColor:'#ef4444', borderDash:[4,3], borderWidth:1.5, pointRadius:0, fill:false, label:'100ppm limit'}
-  ]},
-  options:{responsive:true, maintainAspectRatio:false, animation:false,
-    scales:{x:{display:false}, y:{min:0, max:300,
-      grid:{color:'#f1f5f9'},
-      ticks:{font:{family:'DM Mono',size:10}, callback:v=>v+' ppm'}}},
-    plugins:{legend:{display:false}}}
+// ════════════════════════════════════════════════════════════
+//  STATE
+// ════════════════════════════════════════════════════════════
+let ws          = null;
+let connected   = false;
+let xlOn        = false;
+let xlTimer     = null;
+let allRows     = [];
+let pktSeq      = 0;
+let logRate     = 1;
+let hzTick      = 0;
+let lastHzTime  = 0;
+let launched    = false;
+let launchWall  = 0;
+
+// Firebase state
+let fbApp       = null;
+let fbDb        = null;
+let fbConnected = false;
+let fbWriteMode = 'every';   // 'every' | 'throttle' | 'launch'
+let fbWriteCount= 0;
+let fbThrottleTs= 0;
+let sessionId   = 'session_' + Date.now();
+let fbPacketRef = null;
+let fbLiveRef   = null;
+
+// ════════════════════════════════════════════════════════════
+//  CHARTS
+// ════════════════════════════════════════════════════════════
+Chart.defaults.color       = '#98a2b3';
+Chart.defaults.borderColor = '#e4e7ec';
+Chart.defaults.font.family = "'DM Sans', sans-serif";
+Chart.defaults.font.size   = 11;
+
+function mkChart(id, sets) {
+  const ctx = document.getElementById(id).getContext('2d');
+  return new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: Array(MAX_PTS).fill(''),
+      datasets: sets.map(s => ({
+        label: s.label,
+        data: Array(MAX_PTS).fill(null),
+        borderColor: s.color,
+        backgroundColor: s.color + '12',
+        borderWidth: 1.8,
+        pointRadius: 0,
+        tension: 0.3,
+        fill: sets.length === 1,
+      }))
+    },
+    options: {
+      animation: false, responsive: true, maintainAspectRatio: false,
+      interaction: { mode:'index', intersect:false },
+      plugins: {
+        legend: { display: sets.length > 1, labels:{ boxWidth:8, padding:14, usePointStyle:true, pointStyleWidth:6 } },
+        tooltip: { backgroundColor:'#fff', borderColor:'#e4e7ec', borderWidth:1, titleColor:'#475467', bodyColor:'#101828' }
+      },
+      scales: {
+        x: { display:false },
+        y: { grid:{color:'#f2f4f7'}, ticks:{maxTicksLimit:5,color:'#98a2b3'}, border:{display:false} }
+      }
+    }
+  });
+}
+
+const charts = {
+  agl:   mkChart('c-agl',   [{label:'AGL m',    color:'#2563eb'}]),
+  acc:   mkChart('c-acc',   [{label:'|A| m/s²', color:'#ef4444'}]),
+  pres:  mkChart('c-pres',  [{label:'hPa',      color:'#0891b2'}]),
+  temp:  mkChart('c-temp',  [{label:'°C',       color:'#ea580c'}]),
+  accel: mkChart('c-accel', [{label:'AX',color:'#ef4444'},{label:'AY',color:'#2563eb'},{label:'AZ',color:'#0891b2'}]),
+  gyro:  mkChart('c-gyro',  [{label:'GX',color:'#7c3aed'},{label:'GY',color:'#ea580c'},{label:'GZ',color:'#0891b2'}]),
+};
+
+function pushChart(ch, vals) {
+  vals.forEach((v, i) => {
+    ch.data.datasets[i].data.push(v);
+    if (ch.data.datasets[i].data.length > MAX_PTS) ch.data.datasets[i].data.shift();
+  });
+  ch.data.labels.push('');
+  if (ch.data.labels.length > MAX_PTS) ch.data.labels.shift();
+  ch.update('none');
+}
+
+// ════════════════════════════════════════════════════════════
+//  WEBSOCKET
+// ════════════════════════════════════════════════════════════
+function toggleConnect() { connected ? disconnectWs() : connectWs(); }
+
+function connectWs() {
+  const ip   = document.getElementById('ipInput').value.trim();
+  const port = document.getElementById('portInput').value.trim() || '81';
+  if (!ip) { toast('Enter the ESP32 IP address', 'warn'); return; }
+  toast('Connecting to ' + ip + '…');
+
+  ws = new WebSocket('ws://' + ip + ':' + port);
+  ws.onopen = () => {
+    connected = true;
+    setStatus('live', 'Live');
+    const b = document.getElementById('connBtn');
+    b.textContent = 'Disconnect'; b.classList.add('on');
+    toast('Connected to ESP32', 'ok');
+  };
+  ws.onmessage = e => { try { onData(JSON.parse(e.data)); } catch(_){} };
+  ws.onclose   = () => {
+    connected = false;
+    setStatus('', 'Offline');
+    const b = document.getElementById('connBtn');
+    b.textContent = 'Connect'; b.classList.remove('on');
+    toast('Disconnected', 'err');
+  };
+  ws.onerror = () => toast('Connection failed — check IP & port', 'err');
+}
+function disconnectWs() { if(ws) ws.close(); }
+function sendArm() {
+  if (!ws || ws.readyState!==1) { toast('Not connected', 'warn'); return; }
+  ws.send('ARM'); setStatus('armed','Armed');
+  toast('Armed — baseline altitude set', 'ok');
+}
+function sendReset() {
+  if (ws && ws.readyState===1) ws.send('RESET');
+  launched = false; launchWall = 0;
+  document.getElementById('flightTime').textContent = '00:00.000';
+  setStatus(connected?'live':'', connected?'Live':'Offline');
+  toast('Reset OK', 'ok');
+}
+
+// ════════════════════════════════════════════════════════════
+//  DATA HANDLER
+// ════════════════════════════════════════════════════════════
+function onData(d) {
+  pktSeq++;
+
+  // Hz counter
+  const now = Date.now();
+  hzTick++;
+  if (now - lastHzTime >= 1000) {
+    document.getElementById('hzBadge').textContent = hzTick + ' Hz';
+    hzTick = 0; lastHzTime = now;
+  }
+
+  // Launch detection
+  if (d.launch && !launched) {
+    launched = true;
+    launchWall = now - (d.ft || 0);
+    setStatus('flight', 'Flight');
+    toast('🚀 Launch detected!', 'warn');
+  }
+
+  const accelMag = d.a?.m ?? 0;
+  const gyroMag  = d.g ? Math.hypot(d.g.x, d.g.y, d.g.z) : 0;
+
+  // Update cards
+  set('v-agl',    fmt1(d.agl));   set('v-maxalt', fmt1(d.maxAlt));
+  set('v-accmag', fmt2(accelMag)); set('v-maxacc', fmt1(d.maxAcc));
+  set('v-pres',   fmt1(d.pres));   set('v-alt',    fmt1(d.alt));
+  set('v-temp',   fmt1(d.temp));   set('v-mput',   fmt1(d.mpuT));
+  if (d.a) { set('v-ax',fmt2(d.a.x)); set('v-ay',fmt2(d.a.y)); set('v-az',fmt2(d.a.z)); set('v-amag',fmt2(d.a.m)); }
+  if (d.g) { set('v-gx',fmt3(d.g.x)); set('v-gy',fmt3(d.g.y)); set('v-gz',fmt3(d.g.z)); set('v-gmag',fmt3(gyroMag)); }
+
+  // Chart live vals
+  set('cv-agl',fmt1(d.agl)); set('cv-acc',fmt2(accelMag));
+  set('cv-pres',fmt1(d.pres)); set('cv-temp',fmt1(d.temp));
+
+  // Push to charts
+  pushChart(charts.agl,   [d.agl??0]);
+  pushChart(charts.acc,   [accelMag]);
+  pushChart(charts.pres,  [d.pres??0]);
+  pushChart(charts.temp,  [d.temp??0]);
+  pushChart(charts.accel, [d.a?.x??0, d.a?.y??0, d.a?.z??0]);
+  pushChart(charts.gyro,  [d.g?.x??0, d.g?.y??0, d.g?.z??0]);
+
+  // Build canonical row
+  const row = {
+    uptime: d.t, ft: d.ft, pkt: d.pkt,
+    agl: d.agl, alt: d.alt, pres: d.pres, temp: d.temp,
+    accelMag, ax: d.a?.x, ay: d.a?.y, az: d.a?.z,
+    gx: d.g?.x, gy: d.g?.y, gz: d.g?.z,
+    mpuT: d.mpuT, launched: d.launch ? 1 : 0,
+    ts: new Date().toISOString(),
+  };
+
+  allRows.push(row);
+  if (pktSeq % logRate === 0) addRow(row);
+  document.getElementById('logCount').textContent = allRows.length.toLocaleString() + ' rows recorded';
+
+  // Firebase write
+  writeToFirebase(row, d);
+}
+
+// ════════════════════════════════════════════════════════════
+//  FIREBASE
+// ════════════════════════════════════════════════════════════
+function toggleFirebase() {
+  fbConnected ? disconnectFirebase() : connectFirebase();
+}
+
+function connectFirebase() {
+  const cfg = {
+    apiKey:      document.getElementById('fb-apiKey').value.trim(),
+    authDomain:  document.getElementById('fb-authDomain').value.trim(),
+    databaseURL: document.getElementById('fb-dbUrl').value.trim(),
+    projectId:   document.getElementById('fb-projectId').value.trim(),
+    appId:       document.getElementById('fb-appId').value.trim(),
+  };
+
+  if (!cfg.databaseURL) {
+    toast('Database URL is required', 'err'); return;
+  }
+  if (!cfg.apiKey) {
+    toast('API Key is required', 'err'); return;
+  }
+
+  try {
+    // Delete old app if exists
+    if (fbApp) { firebase.app().delete(); fbApp = null; }
+
+    fbApp = firebase.initializeApp(cfg);
+    fbDb  = firebase.database();
+
+    // Test connection by writing a handshake
+    sessionId   = 'session_' + Date.now();
+    fbPacketRef = fbDb.ref('telemetry/' + sessionId + '/packets');
+    fbLiveRef   = fbDb.ref('telemetry/' + sessionId + '/live');
+
+    const metaRef = fbDb.ref('telemetry/' + sessionId + '/meta');
+    metaRef.set({
+      startedAt: new Date().toISOString(),
+      sessionId: sessionId,
+      device: 'ESP32 + MPU6050 + BMP280',
+    }).then(() => {
+      fbConnected = true;
+      fbWriteCount = 0;
+      setFbStatus('ok', 'Connected');
+      document.getElementById('fbConnBtn').textContent  = '🔥 Disconnect Firebase';
+      document.getElementById('fbConnBtn').classList.add('rec');
+      document.getElementById('fbWritePill').style.display = '';
+      toast('Firebase connected — session: ' + sessionId, 'ok');
+    }).catch(err => {
+      setFbStatus('err', 'Auth failed');
+      toast('Firebase error: ' + err.message, 'err');
+    });
+
+  } catch(e) {
+    setFbStatus('err', 'Init failed');
+    toast('Firebase init error: ' + e.message, 'err');
+  }
+}
+
+function disconnectFirebase() {
+  if (fbApp) {
+    // Write session end marker
+    if (fbDb && sessionId) {
+      fbDb.ref('telemetry/' + sessionId + '/meta/endedAt').set(new Date().toISOString());
+      fbDb.ref('telemetry/' + sessionId + '/meta/totalPackets').set(fbWriteCount);
+    }
+    firebase.app().delete().catch(()=>{});
+    fbApp = null; fbDb = null; fbPacketRef = null; fbLiveRef = null;
+  }
+  fbConnected = false;
+  setFbStatus('', 'Not connected');
+  document.getElementById('fbConnBtn').textContent = '🔥 Connect Firebase';
+  document.getElementById('fbConnBtn').classList.remove('rec');
+  document.getElementById('fbWritePill').style.display = 'none';
+  toast('Firebase disconnected', 'ok');
+}
+
+// ── Write a packet to Firebase ────────────────────────────
+function writeToFirebase(row, raw) {
+  if (!fbConnected || !fbDb) return;
+
+  const now = Date.now();
+
+  // Decide whether to write based on mode
+  if (fbWriteMode === 'throttle' && now - fbThrottleTs < 1000) return;
+  if (fbWriteMode === 'launch'   && !row.launched) return;
+
+  fbThrottleTs = now;
+
+  // ── Packet record (appended with auto-key) ──
+  // Stored at: telemetry/{sessionId}/packets/{auto-id}
+  const packet = {
+    ts:        row.ts,
+    uptime:    row.uptime   ?? 0,
+    ft:        row.ft       ?? 0,
+    pkt:       row.pkt      ?? 0,
+    agl:       row.agl      ?? 0,
+    alt:       row.alt      ?? 0,
+    pres:      row.pres     ?? 0,
+    temp:      row.temp     ?? 0,
+    accelMag:  row.accelMag ?? 0,
+    ax:        row.ax       ?? 0,
+    ay:        row.ay       ?? 0,
+    az:        row.az       ?? 0,
+    gx:        row.gx       ?? 0,
+    gy:        row.gy       ?? 0,
+    gz:        row.gz       ?? 0,
+    mpuT:      row.mpuT     ?? 0,
+    launched:  row.launched ?? 0,
+  };
+
+  fbPacketRef.push(packet).catch(err => {
+    toast('Firebase write error: ' + err.message, 'err');
+    disconnectFirebase();
+  });
+
+  // ── Live node (single overwritten node = always latest) ──
+  // Stored at: telemetry/{sessionId}/live
+  fbLiveRef.set({
+    ...packet,
+    updatedAt: firebase.database.ServerValue.TIMESTAMP,
+  });
+
+  // ── Update peaks node ──
+  fbDb.ref('telemetry/' + sessionId + '/peaks').transaction(cur => {
+    if (!cur) cur = { maxAlt:0, maxAcc:0 };
+    if ((row.agl      ?? 0) > (cur.maxAlt ?? 0)) cur.maxAlt = row.agl;
+    if ((row.accelMag ?? 0) > (cur.maxAcc ?? 0)) cur.maxAcc = row.accelMag;
+    return cur;
+  });
+
+  fbWriteCount++;
+  document.getElementById('fbWriteCount').textContent = fbWriteCount.toLocaleString() + ' writes';
+}
+
+// ── Write mode ────────────────────────────────────────────
+function setWriteMode(mode) {
+  fbWriteMode = mode;
+  ['every','throttle','launch'].forEach(m => {
+    document.getElementById('wm-' + m).classList.toggle('active', m === mode);
+  });
+  document.getElementById('throttleHint').style.display = (mode === 'throttle') ? '' : 'none';
+}
+
+// ── Save / Load config ────────────────────────────────────
+function saveFirebaseConfig() {
+  const cfg = {
+    apiKey:      document.getElementById('fb-apiKey').value,
+    authDomain:  document.getElementById('fb-authDomain').value,
+    databaseURL: document.getElementById('fb-dbUrl').value,
+    projectId:   document.getElementById('fb-projectId').value,
+    appId:       document.getElementById('fb-appId').value,
+  };
+  try {
+    localStorage.setItem('rocketTelFbCfg', JSON.stringify(cfg));
+    toast('Firebase config saved to browser storage', 'ok');
+  } catch(e) { toast('Could not save config', 'err'); }
+}
+
+function loadFirebaseConfig() {
+  try {
+    const raw = localStorage.getItem('rocketTelFbCfg');
+    if (!raw) { toast('No saved config found', 'warn'); return; }
+    const cfg = JSON.parse(raw);
+    document.getElementById('fb-apiKey').value     = cfg.apiKey     || '';
+    document.getElementById('fb-authDomain').value = cfg.authDomain || '';
+    document.getElementById('fb-dbUrl').value      = cfg.databaseURL|| '';
+    document.getElementById('fb-projectId').value  = cfg.projectId  || '';
+    document.getElementById('fb-appId').value      = cfg.appId      || '';
+    toast('Firebase config loaded', 'ok');
+  } catch(e) { toast('Could not load config', 'err'); }
+}
+
+function setFbStatus(state, label) {
+  const pill = document.getElementById('fbStatusPill');
+  const text = document.getElementById('fbStatusText');
+  pill.className = 'fb-stat-pill' + (state ? ' ' + state : '');
+  text.textContent = label;
+}
+
+// Auto-load saved config on page open
+window.addEventListener('load', () => { try { loadFirebaseConfig(); } catch(_){} });
+
+// ════════════════════════════════════════════════════════════
+//  FLIGHT CLOCK
+// ════════════════════════════════════════════════════════════
+requestAnimationFrame(function tick() {
+  if (launched) {
+    const ms = Date.now() - launchWall;
+    const m  = String(Math.floor(ms/60000)).padStart(2,'0');
+    const s  = String(Math.floor(ms/1000)%60).padStart(2,'0');
+    const f  = String(ms%1000).padStart(3,'0');
+    document.getElementById('flightTime').textContent = m+':'+s+'.'+f;
+  }
+  requestAnimationFrame(tick);
 });
 
-function pushChart(v) {
-  hist.push(v); if(hist.length>MAX) hist.shift();
-  chartTDS.data.labels = Array(hist.length).fill('');
-  chartTDS.data.datasets[0].data = [...hist];
-  chartTDS.data.datasets[1].data = Array(hist.length).fill(100);
-  // auto-scale Y max
-  const yMax = Math.max(300, Math.ceil(Math.max(...hist) * 1.2 / 50) * 50);
-  chartTDS.options.scales.y.max = yMax;
-  chartTDS.update('none');
+// ════════════════════════════════════════════════════════════
+//  TABLE
+// ════════════════════════════════════════════════════════════
+function addRow(r) {
+  const tbl = document.getElementById('dataTable');
+  const emp = document.getElementById('emptyState');
+  if (tbl.style.display === 'none') { tbl.style.display=''; emp.style.display='none'; }
+
+  const tbody = document.getElementById('tbody');
+  const tr = document.createElement('tr');
+  if (r.launched) tr.classList.add('launch-row');
+  tr.innerHTML = `
+    <td class="tc-dim">${r.uptime}</td>
+    <td class="tc-ft">${r.ft}</td>
+    <td class="tc-dim">${r.pkt}</td>
+    <td class="tc-agl">${fmt1(r.agl)}</td>
+    <td>${fmt1(r.alt)}</td>
+    <td class="tc-pres">${fmt1(r.pres)}</td>
+    <td class="tc-temp">${fmt1(r.temp)}</td>
+    <td class="tc-acc">${fmt2(r.accelMag)}</td>
+    <td class="${nc(r.ax)}">${fmt2(r.ax)}</td>
+    <td class="${nc(r.ay)}">${fmt2(r.ay)}</td>
+    <td class="${nc(r.az)}">${fmt2(r.az)}</td>
+    <td class="${nc(r.gx)}">${fmt3(r.gx)}</td>
+    <td class="${nc(r.gy)}">${fmt3(r.gy)}</td>
+    <td class="${nc(r.gz)}">${fmt3(r.gz)}</td>
+    <td class="tc-temp">${fmt1(r.mpuT)}</td>
+    <td style="color:${r.launched?'var(--red)':'var(--text-dim)'}">${r.launched?'YES':'—'}</td>
+  `;
+  tbody.insertBefore(tr, tbody.firstChild);
+  while (tbody.rows.length > 300) tbody.deleteRow(tbody.rows.length-1);
 }
 
-// ── BOTTLE FILL UI ────────────────────────────────────────
-function updateBottleUI(pct) {
-  if(pct === null || pct < 0) return;
-  // SVG fill rect: body from y=22 to y=102 (height=80)
-  const fillH = Math.round((pct / 100) * 80);
-  const fillY = 102 - fillH;
-  document.getElementById('bottleFillRect').setAttribute('y', fillY);
-  document.getElementById('bottleFillRect').setAttribute('height', fillH);
+function nc(v) { if (v==null) return ''; return v>0.05?'tc-pos':v<-0.05?'tc-neg':'tc-dim'; }
+function setRate(r) {
+  logRate = r;
+  ['r1','r5','r20'].forEach(id=>document.getElementById(id).classList.remove('active'));
+  ({1:'r1',5:'r5',20:'r20'})[r] && document.getElementById(({1:'r1',5:'r5',20:'r20'})[r]).classList.add('active');
+}
 
-  // color by level
-  const color = pct >= 90 ? '#ef4444' : pct >= 70 ? '#f59e0b' : '#0ea5e9';
-  document.getElementById('bottleFillRect').setAttribute('fill', color);
+// ════════════════════════════════════════════════════════════
+//  EXCEL
+// ════════════════════════════════════════════════════════════
+function toggleExcel() { xlOn ? stopExcel() : startExcel(); }
+function startExcel() {
+  if (!connected) { toast('Connect to ESP32 first', 'warn'); return; }
+  xlOn = true;
+  document.getElementById('xlBtn').textContent = '⏹ Stop Logging';
+  document.getElementById('xlBtn').classList.add('rec');
+  document.getElementById('xlStat').classList.add('rec');
+  document.getElementById('xlStatText').textContent = 'Recording…';
+  xlTimer = setInterval(() => { if (allRows.length) saveExcel(false); }, SAVE_MS);
+  toast('Excel logging started — auto-saves every 5s', 'ok');
+}
+function stopExcel() {
+  xlOn = false; clearInterval(xlTimer);
+  document.getElementById('xlBtn').textContent = '▶ Start Logging';
+  document.getElementById('xlBtn').classList.remove('rec');
+  document.getElementById('xlStat').classList.remove('rec');
+  document.getElementById('xlStatText').textContent = 'Not recording';
+  if (allRows.length) saveExcel(true);
+  toast('Logging stopped — final file saved', 'ok');
+}
+function manualExport() { if (!allRows.length) { toast('No data yet','warn'); return; } saveExcel(true); }
+function saveExcel(notify) {
+  try {
+    const wb  = XLSX.utils.book_new();
+    const hdr = ['Timestamp','Uptime_ms','FlightTime_ms','Packet',
+      'AGL_m','Altitude_ASL_m','Pressure_hPa','Temperature_C',
+      'AccelMag_ms2','Ax_ms2','Ay_ms2','Az_ms2','Gx_rads','Gy_rads','Gz_rads','MPU_Temp_C','Launched'];
+    const rows = allRows.map(r=>[r.ts,r.uptime,r.ft,r.pkt,r.agl,r.alt,r.pres,r.temp,r.accelMag,r.ax,r.ay,r.az,r.gx,r.gy,r.gz,r.mpuT,r.launched]);
+    const ws1  = XLSX.utils.aoa_to_sheet([hdr,...rows]);
+    ws1['!cols'] = [{wch:26},{wch:12},{wch:14},{wch:8},{wch:10},{wch:14},{wch:13},{wch:13},{wch:13},{wch:9},{wch:9},{wch:9},{wch:9},{wch:9},{wch:9},{wch:12},{wch:8}];
+    XLSX.utils.book_append_sheet(wb, ws1, 'Telemetry');
 
-  // progress bars
-  const barColor = pct >= 90 ? '#ef4444' : pct >= 70 ? '#f59e0b' : '#10b981';
-  ['fill-bar','fill-bar2'].forEach(id=>{
-    const el = document.getElementById(id);
-    el.style.width = pct+'%';
-    el.style.background = barColor;
+    const maxAlt = Math.max(...allRows.map(r=>r.agl??0));
+    const maxAcc = Math.max(...allRows.map(r=>r.accelMag??0));
+    const minPres= Math.min(...allRows.map(r=>r.pres??9999));
+    const maxTemp= Math.max(...allRows.map(r=>r.temp??-999));
+    const minTemp= Math.min(...allRows.map(r=>r.temp??999));
+    const lR     = allRows.filter(r=>r.launched);
+    const ws2    = XLSX.utils.aoa_to_sheet([
+      ['Sounding Rocket Flight Summary'],['Generated',new Date().toISOString()],['Total Packets',allRows.length],
+      ['Firebase Session', sessionId],[],
+      ['FLIGHT'],['Launch Detected',lR.length>0?'YES':'NO'],['Flight Duration (ms)',lR.length>1?lR[lR.length-1].ft-lR[0].ft:0],[],
+      ['ALTITUDE'],['Max AGL (m)',maxAlt.toFixed(2)],[],
+      ['ACCELERATION'],['Max |A| (m/s²)',maxAcc.toFixed(3)],['Max g-load (g)',(maxAcc/9.81).toFixed(2)],[],
+      ['ATMOSPHERE'],['Max Temp (°C)',maxTemp.toFixed(1)],['Min Temp (°C)',minTemp.toFixed(1)],['Min Pressure (hPa)',minPres.toFixed(2)],
+    ]);
+    ws2['!cols'] = [{wch:26},{wch:22}];
+    XLSX.utils.book_append_sheet(wb, ws2, 'Summary');
+
+    const ts = new Date().toISOString().replace(/[:.]/g,'-').slice(0,19);
+    XLSX.writeFile(wb, `rocket_telemetry_${ts}.xlsx`);
+    if (notify) toast('Saved ' + allRows.length + ' rows to Excel', 'ok');
+  } catch(e) { toast('Export error: ' + e.message, 'err'); }
+}
+
+// ════════════════════════════════════════════════════════════
+//  HELPERS
+// ════════════════════════════════════════════════════════════
+function clearAll() {
+  allRows=[]; pktSeq=0;
+  document.getElementById('tbody').innerHTML='';
+  document.getElementById('logCount').textContent='0 rows recorded';
+  document.getElementById('dataTable').style.display='none';
+  document.getElementById('emptyState').style.display='';
+  Object.values(charts).forEach(c=>{
+    c.data.datasets.forEach(ds=>ds.data=Array(MAX_PTS).fill(null));
+    c.data.labels=Array(MAX_PTS).fill('');
+    c.update('none');
   });
-
-  document.getElementById('fill-pct').textContent = pct+'%';
-  document.getElementById('dfill-pct').textContent = pct+'%';
-
-  const fb = document.getElementById('b-fill');
-  if(pct >= 90){ fb.textContent='● Full — pump stopped'; fb.className='badge b-bad'; }
-  else if(pct >= 70){ fb.textContent='● Almost full'; fb.className='badge b-warn'; }
-  else if(pct > 0){ fb.textContent='● Filling'; fb.className='badge b-good'; }
-  else{ fb.textContent='● Empty'; fb.className='badge b-info'; }
-
-  // bottle full alert
-  document.getElementById('bottle-alert').classList.toggle('hidden', pct < 90);
+  toast('Cleared', 'ok');
 }
-
-// ── SERIAL ────────────────────────────────────────────────
-async function toggleSerial() {
-  if(running){ disconnectSerial(); return; }
-  if(!('serial' in navigator)){
-    alert('Web Serial not supported.\nUse Google Chrome or Microsoft Edge.\nMake sure Arduino Serial Monitor is closed.');
-    return;
-  }
-  try {
-    port = await navigator.serial.requestPort();
-    await port.open({baudRate:115200});
-    running = true;
-    setConnUI(true);
-    document.getElementById('banner').classList.add('hidden');
-    addLog('Connected — reading ESP32 data');
-    readLoop();
-  } catch(e){ addLog('Failed: '+e.message); }
+function setStatus(state, label) {
+  document.getElementById('statusDot').className = 'status-dot ' + state;
+  document.getElementById('statusText').textContent = label;
 }
-
-async function disconnectSerial() {
-  running=false;
-  try{ if(reader){await reader.cancel();reader=null;} if(port) await port.close(); }catch(_){}
-  port=null; setConnUI(false); addLog('Disconnected');
-}
-
-async function readLoop() {
-  const dec = new TextDecoderStream();
-  port.readable.pipeTo(dec.writable);
-  reader = dec.readable.getReader();
-  let buf='';
-  try {
-    while(running){
-      const {value,done} = await reader.read();
-      if(done) break;
-      buf += value;
-      const lines = buf.split('\n'); buf = lines.pop();
-      lines.forEach(parseLine);
-    }
-  } catch(e){ if(running) addLog('Read error: '+e.message); }
-  running=false; setConnUI(false);
-}
-
-// Parses: TDS:85.2,PUMP:ON,CYC:1,RUN:5000,UP:12000,DIST:8.4,FILL:58
-function parseLine(line) {
-  line = line.trim(); if(!line) return;
-  const get = k => { const m=line.match(new RegExp(k+':([^,\\r\\n]+)')); return m?m[1].trim():null; };
-
-  const t  = get('TDS'),  p = get('PUMP'), c = get('CYC');
-  const r  = get('RUN'),  u = get('UP');
-  const dc = get('DIST'), f = get('FILL');
-
-  if(t  !== null) { tdsVal  = parseFloat(t);  pushChart(tdsVal); }
-  if(p  !== null)   pumpState = p;
-  if(c  !== null)   cycles    = parseInt(c);
-  if(r  !== null)   runMs     = parseInt(r);
-  if(u  !== null)   uptimeMs  = parseInt(u);
-  if(dc !== null)   distCm    = parseFloat(dc);
-  if(f  !== null)   fillPct   = parseInt(f);
-
-  if(line === 'BOTTLE_FULL') {
-    addLog('🚨 BOTTLE FULL — pump auto-stopped');
-    pumpState = 'OFF';
-  }
-  if(line.startsWith('PUMP:')) addLog(line);
-
-  if(t) updateAll();
-}
-
-// ── UPDATE ALL UI ─────────────────────────────────────────
-function updateAll() {
-  if(tdsVal === null) return;
-  const v   = tdsVal.toFixed(1);
-  const rs  = Math.round(runMs/1000)+' s';
-  const uh  = String(Math.floor(uptimeMs/3600000)).padStart(2,'0');
-  const um  = String(Math.floor((uptimeMs%3600000)/60000)).padStart(2,'0');
-  const up  = uh+':'+um;
-  const isNormal = tdsVal < 100;
-  const wLabel   = isNormal ? 'Normal' : 'Abnormal';
-  const fillStr  = fillPct !== null && fillPct >= 0 ? fillPct+'%' : '—';
-  const distStr  = distCm  !== null && distCm  >= 0 ? distCm.toFixed(1)+' cm' : '—';
-
-  // ── Dashboard ──
-  set('v-tds', v); set('v-up', up); set('v-cyc', cycles);
-  set('v-pump', pumpState); set('v-tdsraw', v+' ppm');
-  set('v-dist', distStr);
-
-  // TDS badge
-  const bt = document.getElementById('b-tds');
-  if(isNormal){ bt.textContent='● Normal'; bt.className='badge b-good'; }
-  else        { bt.textContent='● Abnormal'; bt.className='badge b-bad'; }
-
-  // Water status card
-  set('v-wstatus', wLabel);
-  const bw = document.getElementById('b-wstatus');
-  if(isNormal){ bw.textContent='● Clean water'; bw.className='badge b-good'; }
-  else        { bw.textContent='● Contaminated'; bw.className='badge b-bad'; }
-
-  // Pump badge
-  const bp = document.getElementById('b-pump');
-  bp.textContent = pumpState==='ON' ? '● Sampling' : '● Idle';
-  bp.className   = pumpState==='ON' ? 'badge b-good' : 'badge b-info';
-
-  // Bottle
-  updateBottleUI(fillPct);
-  set('v-fill', fillPct !== null && fillPct >= 0 ? fillPct : '—');
-
-  // ── Drone tab ──
-  set('dp-status', '● '+pumpState);
-  set('dp-cycles', cycles); set('dp-run', rs);
-  set('d-tds',  v+' ppm'); set('d-dist', distStr);
-  set('d-wq', wLabel);
-  document.getElementById('d-wq').style.color = isNormal ? '#16a34a' : '#dc2626';
-
-  // ── Report tab ──
-  set('r-tds',     v+' ppm');
-  set('r-wstatus', wLabel);
-  set('r-fill',    fillStr);
-  set('r-pump',    pumpState);
-  set('r-cyc',     cycles);
-}
-
-const set = (id,v) => { const e=document.getElementById(id); if(e) e.textContent=v; };
-
-// ── PUMP COMMAND ──────────────────────────────────────────
-async function cmdPump(action) {
-  if(!port||!running){ addLog('⚠ Not connected to ESP32'); return; }
-  const w = port.writable.getWriter();
-  await w.write(new TextEncoder().encode(action+'\n'));
-  w.releaseLock();
-  addLog('→ Sent: '+action);
-}
-
-// ── LOG ───────────────────────────────────────────────────
-function addLog(msg) {
-  const box = document.getElementById('log');
-  const d = document.createElement('div'); d.className='log-line';
-  d.textContent = new Date().toTimeString().slice(0,8)+' — '+msg;
-  box.appendChild(d); box.scrollTop = box.scrollHeight;
-}
-
-// ── CONN UI ───────────────────────────────────────────────
-function setConnUI(on) {
-  document.getElementById('dot').className = 'dot'+(on?' live':' err');
-  document.getElementById('conn-lbl').textContent = on?'Live · ESP32':'Not connected';
-  const b = document.getElementById('conn-btn');
-  b.textContent = on?'Disconnect':'Connect ESP32';
-  b.className   = 'conn-btn'+(on?' connected':'');
-}
-
-// ── PAGE NAV ──────────────────────────────────────────────
-let mapInit=false;
-function go(id,el) {
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
-  document.getElementById('page-'+id).classList.add('on'); el.classList.add('on');
-  if(id==='drone'&&!mapInit) initMap();
-}
-
-// ── MAP ───────────────────────────────────────────────────
-let map, tMarker;
-function initMap() {
-  if(mapInit)return; mapInit=true;
-  map = L.map('map').setView([13.0827,80.2707],10);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'OSM'}).addTo(map);
-  L.marker([13.0827,80.2707],{icon:L.divIcon({html:'<div style="font-size:20px">🚁</div>',iconSize:[28,28],className:''})}).addTo(map).bindPopup('Base');
-  map.on('click',e=>{
-    document.getElementById('lat').value = e.latlng.lat.toFixed(5);
-    document.getElementById('lon').value = e.latlng.lng.toFixed(5);
-    if(tMarker) map.removeLayer(tMarker);
-    tMarker = L.marker([e.latlng.lat,e.latlng.lng]).addTo(map).bindPopup('Target').openPopup();
-  });
-}
-function flyTo(){
-  const la=parseFloat(document.getElementById('lat').value);
-  const lo=parseFloat(document.getElementById('lon').value);
-  if(!mapInit)initMap(); setTimeout(()=>map.flyTo([la,lo],12),100);
-}
-
-let launched=false;
-function launch(){
-  if(!mapInit){go('drone',document.querySelectorAll('.tab')[1]);initMap();return;}
-  launched=true;
-  setTag('In Flight','#dbeafe','#1d4ed8');
-  document.getElementById('s-log').textContent='🚀 Launched to target location';
-  let a=0; const t=setInterval(()=>{
-    a+=5;
-    document.getElementById('d-alt').textContent=a+' m'; set('v-alt',a);
-    if(a>=50){clearInterval(t);document.getElementById('s-log').textContent='✅ Hovering at 50m — release tube to sample.';}
-  },400);
-}
-function releaseTube(){
-  if(!launched){document.getElementById('s-log').textContent='⚠ Launch drone first.';return;}
-  document.getElementById('s-log').textContent='💧 Tube released. Lower to water surface.';
-  setTag('Tube Out','#dcfce7','#16a34a');
-}
-function startPump(){
-  if(!launched){document.getElementById('s-log').textContent='⚠ Launch drone first.';return;}
-  cmdPump('ON');
-  document.getElementById('s-log').textContent='⬇ Pump ON — collecting water into bottle...';
-  setTag('Sampling','#dcfce7','#16a34a');
-}
-function stopAll(){
-  cmdPump('OFF');
-  setTag('Idle','','');
-  document.getElementById('s-log').textContent='■ Stopped.';
-}
-function returnHome(){
-  launched=false; cmdPump('OFF');
-  document.getElementById('s-log').textContent='⏎ Returning to base...';
-  set('v-alt',0); document.getElementById('d-alt').textContent='0 m';
-  setTag('Returning','#fef9c3','#92400e');
-}
-function setTag(txt,bg,col){
-  const t=document.getElementById('s-tag');
-  t.textContent=txt; t.style.background=bg; t.style.color=col;
-}
-
-// ── AI REPORT ─────────────────────────────────────────────
-async function genReport(){
-  const type  = document.getElementById('rtype').value;
-  const notes = document.getElementById('rnotes').value;
-  const snap  = {
-    tds:     tdsVal ? tdsVal.toFixed(1) : 'N/A',
-    status:  tdsVal !== null ? (tdsVal < 100 ? 'Normal' : 'Abnormal') : '—',
-    fill:    fillPct !== null ? fillPct+'%' : '—',
-    dist:    distCm  !== null ? distCm.toFixed(1)+' cm' : '—',
-    pump:    pumpState, cycles
-  };
-  const out = document.getElementById('ai-out');
-  out.innerHTML = '<span class="spinner"></span>Analyzing...';
-  const prompt = `You are a water quality expert AI. Generate a professional ${type} for a drone-based water sampling system with ESP32.
-
-Sensors: TDS (GPIO 34), Relay pump (GPIO 26), HC-SR04 ultrasonic bottle-fill sensor
-TDS reading   : ${snap.tds} ppm
-Water status  : ${snap.status} (threshold: ≥100 ppm = abnormal)
-Bottle fill   : ${snap.fill}
-Ultrasonic dist: ${snap.dist}
-Pump state    : ${snap.pump}
-Pump cycles   : ${snap.cycles}
-${notes ? 'Context: '+notes : ''}
-
-Rules:
-- TDS < 100 ppm = NORMAL / clean water
-- TDS ≥ 100 ppm = ABNORMAL / contaminated
-
-Provide:
-1. EXECUTIVE SUMMARY (2-3 sentences)
-2. TDS ANALYSIS (vs 100 ppm threshold)
-3. BOTTLE COLLECTION STATUS
-4. RISK ASSESSMENT (Low/Medium/High)
-5. RECOMMENDATIONS (3-4 steps)
-6. WATER QUALITY INDEX (/100)
-
-Plain text only, no markdown.`;
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:900,messages:[{role:'user',content:prompt}]})
-    });
-    const d = await res.json();
-    lastReport.v = d.content?.map(b=>b.text||'').join('') || 'No response.';
-  } catch(e) {
-    const t = parseFloat(snap.tds) || 0;
-    const normal = t < 100;
-    lastReport.v =
-`EXECUTIVE SUMMARY
-TDS reading of ${t.toFixed(0)} ppm is ${normal ? 'NORMAL — below the 100 ppm threshold. Water quality is clean and safe for collection.' : 'ABNORMAL — exceeds the 100 ppm threshold. Water is contaminated and not suitable for use without treatment.'}
-Bottle is currently ${snap.fill} full.
-
-TDS ANALYSIS
-• TDS: ${t.toFixed(0)} ppm — ${t<50?'Excellent (pure/distilled range)':t<100?'Normal (clean water)':t<300?'Abnormal — elevated dissolved solids':'Abnormal — severely contaminated'}
-• Threshold: 100 ppm (project-specific)
-• Status: ${normal ? 'NORMAL ✓' : 'ABNORMAL ✗'}
-
-BOTTLE COLLECTION STATUS
-• Fill level: ${snap.fill}
-• Ultrasonic distance: ${snap.dist}
-• Pump auto-stops at 90% fill to prevent overflow.
-• ${snap.fill !== '—' && parseInt(snap.fill)>=90 ? 'Bottle is full — replace before next sampling.' : 'Bottle has capacity for continued collection.'}
-
-RISK ASSESSMENT: ${t<50?'LOW':t<100?'LOW':t<200?'MEDIUM':'HIGH'}
-${normal ? 'No contamination risk detected. Water within safe TDS range.' : 'Contamination detected. Do not use water without filtration/treatment.'}
-
-RECOMMENDATIONS
-1. ${!normal ? 'Do not use collected water — high TDS indicates contamination.' : 'Water is safe — proceed with normal collection protocol.'}
-2. Flush the tube for 30 seconds before recording to clear residue.
-3. Recalibrate TDS K-value monthly with a 442 ppm reference solution.
-4. Replace bottle when full alert triggers — pump resumes automatically.
-
-WATER QUALITY INDEX: ${t<50?97:t<100?82:t<200?55:t<500?35:15} / 100 — ${normal?'GOOD':'POOR'}`;
-  }
-  out.textContent = lastReport.v;
-  document.getElementById('dl-btn').style.display = '';
-}
-
-function dlReport(){
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([`AquaDrone Report\n${new Date().toLocaleString()}\n\n${lastReport.v}`],{type:'text/plain'}));
-  a.download = `AquaDrone_${new Date().toISOString().slice(0,10)}.txt`;
-  a.click();
-}
-function copyCode(){
-  navigator.clipboard.writeText(document.getElementById('ecode').innerText)
-    .then(()=>{ event.target.textContent='✓ Copied!'; setTimeout(()=>event.target.textContent='📋 Copy',2000); });
+function set(id, val) { const el=document.getElementById(id); if(el) el.textContent=val??'—'; }
+function fmt1(v){ return v!=null?(+v).toFixed(1):'—'; }
+function fmt2(v){ return v!=null?(+v).toFixed(2):'—'; }
+function fmt3(v){ return v!=null?(+v).toFixed(3):'—'; }
+let toastT=null;
+function toast(msg, type='ok') {
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.className='toast show '+type;
+  clearTimeout(toastT); toastT=setTimeout(()=>el.className='toast',3500);
 }
 </script>
 </body>
